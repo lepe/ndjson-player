@@ -47,7 +47,7 @@ player.stop(); //Stop video and go to original position
 { "frame" : "image 3 here" }
 { "frame" : "image 4 here" }
 ```
-As image, it is recommended to use base64 format for images, but URL can also be used (although may slow the video)
+It is recommended to use base64 format for images, but URL can also be used (although may slow the video)
 
 For metadata, you can add whatever you want, for example:
 
