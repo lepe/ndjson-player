@@ -1,0 +1,40 @@
+{
+  "name": "ndjson-player",
+  "version": "0.1.0",
+  "description": "Video player which uses NDJSON as source and metadata.",
+  "main": "src/ndjson-player.src.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lepe/ndjson-player"
+  },
+  "keywords": [
+    "ndjson",
+    "player",
+    "video",
+    "metadata",
+    "images"
+  ],
+  "author": "Alberto Lepe",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/lepe/ndjson-player/issues"
+  },
+  "homepage": "https://github.com/lepe/ndjson-player",
+  "devDependencies": {
+    "@babel/core": "^7.9.0",
+    "@babel/preset-env": "^7.9.5",
+    "del": "^1.1.1",
+    "gulp": "^3.8.11",
+    "gulp-babel": "^8.0.0",
+    "gulp-concat": "^2.5.2",
+    "gulp-cssmin": "^0.1.6",
+    "gulp-sass": "^4.0.2",
+    "gulp-sass-glob": "^1.1.0",
+    "gulp-terser": "^1.2.0",
+    "gulp-uglify-es": "^2.0.0",
+    "node-sass": "^4.13.1"
+  }
+}
