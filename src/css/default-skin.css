@@ -2,7 +2,7 @@ button {
   color: #999;
   background-color: #333; }
 
-canvas.ndjp {
+.ndjp canvas {
   width: 100%;
   height: auto;
   background-color: black; }

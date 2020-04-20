@@ -24,7 +24,6 @@ class NdJsonPlayer {
     #src = "";          // Video source URI (NDJSON)
     #frames = [];       // Video content (array)
     #frame = 0;         // Current frame being played
-    #loaded  = false;   // Loading video status
     #playing = false;   // Status
     #backwards = false; // If playing backwards
     #multiplier = 1;    // Multiplier to control speed
@@ -53,16 +52,22 @@ class NdJsonPlayer {
             throw "Incorrect parameter passed to constructor of NdJsonPlayer";
         }
         // Look for canvas
-        _this.#canvas = document.querySelector(element || "canvas");
-        if (_this.#canvas !== undefined) {
-            if (_this.#canvas.tagName !== "CANVAS") {
-                throw "Canvas element not found: " + element;
+        let player = document.querySelector(element || "canvas");
+        if (player) {
+            if (player.tagName === "CANVAS") {
+                _this.#canvas = player;
             } else {
-                _this.#ctx = _this.#canvas.getContext("2d");
+                _this.#canvas = document.createElement("CANVAS");
+                player.append(_this.#canvas);
             }
         } else {
             throw "Canvas element was not found in DOM: " + element;
         }
+        // Set classname for style
+        player.classList.add("ndjp");
+
+        // Set context
+        _this.#ctx = _this.#canvas.getContext("2d");
 
         // Options:
         _this.fps        = options.fps || 24;
@@ -70,7 +75,7 @@ class NdJsonPlayer {
         _this.autoplay   = options.autoplay || false;
         _this.path       = options.path || "";
         _this.onFinish   = options.onFinish || function () {}
-        _this.onError    = options.onError || function () {}
+        _this.onError    = options.onError || function (e) { console.log(e); }
 
         // Initialize timer:
         _this.#timer = new Timer(1000 / _this.fps);
@@ -112,7 +117,7 @@ class NdJsonPlayer {
                     buffer = lines.pop();
                     lines.map(JSON.parse).forEach(callback);
                 return reader.read().then(process);
-            }));
+            })).catch(reason => this.onError(reason));
     }
 
     /**
