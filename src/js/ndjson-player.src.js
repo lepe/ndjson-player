@@ -56,6 +56,11 @@ class NdJsonPlayer {
         if (player) {
             if (player.tagName === "CANVAS") {
                 _this.#canvas = player;
+                // create wrapper container
+                const wrapper = document.createElement('div');
+                player.parentNode.insertBefore(wrapper, player);
+                wrapper.appendChild(player);
+                player = wrapper;
             } else {
                 _this.#canvas = document.createElement("CANVAS");
                 player.append(_this.#canvas);
