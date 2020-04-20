@@ -17,10 +17,11 @@
     <script>
         document.addEventListener("DOMContentLoaded", function() {
 
-            const player = new NdJsonPlayer("/video/video01.ndjson", {
+            const player = new NdJsonPlayer("video01.ndjson", {
                 fps: 30,
                 loop: true,
-                autoplay: true
+                autoplay: true,
+                path: "video/"
             });
 
         });
