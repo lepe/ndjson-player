@@ -9,21 +9,27 @@ class NdJsonPlayer {
     // Options
     fps;        //default: 24FPS
     loop;       //default: false
+    showfirst;  //default: true : show first image
     autoplay;   //default: false
     path;       //default: "" : Specify common path for images in case URL is used.
                 //              For example: path = "http://localhost:8080/images/"
                 //              then, use "img12334.jpg" as frame in NDJSON (to reduce size of file)
+
     // Events
+    onRender;   // Callback to return metadata when a frame is rendered
     onFinish;   // Callback when video reaches the last frame
     onError;    // Callback when there is an error with the source
 
     // Private
+    player  = null;     // DOM element which contains the <canvas> node
     #canvas = null;     // <canvas> DOM object
     #ctx = null;        // canvas.ctx object
     #timer = null;      // Timer used to manage FPS
     #src = "";          // Video source URI (NDJSON)
     #frames = [];       // Video content (array)
     #frame = 0;         // Current frame being played
+    #frameBase = ""     // Base for all frames 'fb'
+    #loaded  = false;   // If a frame has been loaded or not
     #playing = false;   // Status
     #backwards = false; // If playing backwards
     #multiplier = 1;    // Multiplier to control speed
@@ -68,6 +74,7 @@ class NdJsonPlayer {
         } else {
             throw "Canvas element was not found in DOM: " + element;
         }
+        _this.player = player;
         // Set classname for style
         player.classList.add("ndjp");
 
@@ -78,7 +85,9 @@ class NdJsonPlayer {
         _this.fps        = options.fps || 24;
         _this.loop       = options.loop || false;
         _this.autoplay   = options.autoplay || false;
+        _this.showfirst  = options.showfirst !== false;
         _this.path       = options.path || "";
+        _this.onRender   = options.onRender || function () {}
         _this.onFinish   = options.onFinish || function () {}
         _this.onError    = options.onError || function (e) { console.log(e); }
 
@@ -86,11 +95,25 @@ class NdJsonPlayer {
         _this.#timer = new Timer(1000 / _this.fps);
 
         // Load video:
-        _this.load(function (obj) {
-            _this.#frames.push(obj);
-            // AutoPlay:
-            if(_this.autoplay) {
-                _this.play();
+        _this.load(function (item) {
+            if(item.fb !== undefined) {
+                _this.#frameBase = item.fb;
+            }
+            if(item.fps !== undefined) {
+                _this.fps= item.fps;
+                _this.#timer = new Timer(1000 / _this.fps);
+            }
+            if(item.f !== undefined) {
+                _this.#frames.push(item);
+                // AutoPlay:
+                if (!_this.#loaded) {
+                    _this.#loaded = true;
+                    if (_this.autoplay) {
+                        _this.play();
+                    } else if (_this.showfirst) {
+                        _this.step();
+                    }
+                }
             }
         });
     }
@@ -152,18 +175,24 @@ class NdJsonPlayer {
      */
     _displayImg(once) {
         const _this = this;
-        const frame = _this.#frames[_this.#frame].frame;
-        //TODO: get metadata and call function
-        _this._image(frame, function(img) {
-            _this.#timer.call(function() {
-                if(!once) {
+        const item = _this.#frames[_this.#frame];
+        _this.onRender(item);
+        const next = function() {
+            _this.#timer.call(function () {
+                if (!once) {
                     _this._increment();
                     //Do not execute anything until its loaded
                     _this.#timer.nocall();
                 }
                 _this._displayImg();
             });
-        });
+        }
+        if(item.f !== undefined) {
+            const frame = _this.#frameBase + item.f;
+            _this._image(frame, next);
+        } else {
+            next();
+        }
     }
 
     /**
@@ -204,11 +233,8 @@ class NdJsonPlayer {
                 callback(false);
             }
         } else {
-            const new_width = img.width;
-            const new_height = img.height;
             _this.#ctx.save();
-//            _this.#ctx.clear();
-            _this.#ctx.drawImage(img, _this.#canvas.width/2 - new_width/2, _this.#canvas.height/2 - new_height/2, new_width, new_height);
+            _this.#ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, _this.#canvas.width, _this.#canvas.height);
             _this.#ctx.restore();
             if(callback !== undefined) {
                 callback(true);
@@ -286,6 +312,7 @@ class NdJsonPlayer {
      */
     pause() {
         this.#playing = false;
+        this.#timer.pause();
     }
 
     /**
@@ -294,13 +321,14 @@ class NdJsonPlayer {
     stop() {
         this.#playing = false;
         this.#frame = 0;
+        this.#timer.pause();
+        this._displayImg(true);
     }
 
     /**
      * Move the video one frame in the current direction
      */
     step() {
-
         this._render(true);
     }
 

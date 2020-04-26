@@ -1,7 +1,19 @@
-.ndjp {
+.ndjp.default {
   canvas {
     width: 100%;
     height: auto;
     background-color: $video_bg;
+  }
+  nav {
+    background-color: $controls_bg;
+    padding: $padding;
+    margin: 0;
+    margin-top: -4px; //FIXME
+    a {
+      color: $buttons_fg;
+      padding: 0 $padding;
+      text-decoration: none;
+      display: inline-block;
+    }
   }
 }

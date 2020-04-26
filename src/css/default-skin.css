@@ -1,8 +1,15 @@
-button {
-  color: #999;
-  background-color: #333; }
-
-.ndjp canvas {
+.ndjp.default canvas {
   width: 100%;
   height: auto;
   background-color: black; }
+
+.ndjp.default nav {
+  background-color: black;
+  padding: 5px;
+  margin: 0;
+  margin-top: -4px; }
+  .ndjp.default nav a {
+    color: #999;
+    padding: 0 5px;
+    text-decoration: none;
+    display: inline-block; }

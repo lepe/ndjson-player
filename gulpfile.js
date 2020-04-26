@@ -12,7 +12,14 @@ const paths = {
 	prefix: 'ndjson-player.min',
 	build: 'dist',
 	src: 'src',
-	js: ['src/js/*.js'],
+	js: [
+		'src/js/utils.src.js',
+		'src/js/m2d2.src.js',
+		'src/js/m2d2.*.js',
+		'src/js/ndjson-player.*.js',
+		'src/js/ndjson-ui.*.js',
+		'src/js/*.js'
+	],
 	css: ['src/css/*.css'],
 	scss: ['src/scss/*.scss'],
 	scss_out : 'src/css/'
