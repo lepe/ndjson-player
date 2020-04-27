@@ -43,4 +43,9 @@ class Utils {
     static isEmpty(obj) {
         return obj === undefined || (Utils.isObject(obj) && Object.keys(obj).length === 0) || obj === "";
     };
+    static fmtTime(time) {
+        time = time.toFixed(1);
+        let decimal = time.split(".")[1] || "0";
+        return (~~(time / 60) + "").padStart(2, '0') + ":" + (~~((time / 60) % 1 * 60) + "").padStart(2, '0') + "." + decimal;
+    }
 }

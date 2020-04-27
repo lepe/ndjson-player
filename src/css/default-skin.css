@@ -3,13 +3,39 @@
   height: auto;
   background-color: black; }
 
-.ndjp.default nav {
+.ndjp.default .controls {
   background-color: black;
   padding: 5px;
-  margin: 0;
-  margin-top: -4px; }
-  .ndjp.default nav a {
+  margin: -4px 0 0; }
+  .ndjp.default .controls a {
     color: #999;
     padding: 0 5px;
-    text-decoration: none;
-    display: inline-block; }
+    text-decoration: none; }
+    .ndjp.default .controls a:hover {
+      color: white; }
+  .ndjp.default .controls label {
+    color: #999;
+    font-family: monospace;
+    font-size: 80%; }
+  .ndjp.default .controls progress {
+    width: 75%;
+    float: right;
+    vertical-align: middle;
+    margin-top: 5px; }
+
+progress {
+  border: 0;
+  height: 10px;
+  -webkit-appearance: none; }
+  progress::-webkit-progress-bar {
+    background-color: #333;
+    border-radius: 2px;
+    padding: 2px; }
+  progress::-webkit-progress-value {
+    background-color: #999;
+    border-radius: 2px; }
+
+.ndjp.default img.thumb {
+  position: absolute;
+  border: 3px solid black;
+  border-radius: 4px; }

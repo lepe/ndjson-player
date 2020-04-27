@@ -21,12 +21,13 @@ class NdJsonPlayer {
     onError;    // Callback when there is an error with the source
 
     // Private
-    player  = null;     // DOM element which contains the <canvas> node
+    #player = null;     // DOM element which contains the <canvas> node
     #canvas = null;     // <canvas> DOM object
     #ctx = null;        // canvas.ctx object
     #timer = null;      // Timer used to manage FPS
     #src = "";          // Video source URI (NDJSON)
-    #frames = [];       // Video content (array)
+    #numFrames = 0;     // Number of total frames (in header)
+    #frames = [];       // Video content including metadata (array)
     #frame = 0;         // Current frame being played
     #frameBase = ""     // Base for all frames 'fb'
     #loaded  = false;   // If a frame has been loaded or not
@@ -43,13 +44,20 @@ class NdJsonPlayer {
      * @param src     .ndjson file (see format)
      * @param element HTML element (must be a canvas). If not set, it will use '<canvas>'
      * @param options Object replacing default values
+     * @param onrender Callback when a frame is updated
+     * @param onfinish Callback when the video is finished
+     * @param onerror Callback when there is an error to raise
      */
-    constructor(src, element, options) {
+    constructor(src, element, options, onrender, onfinish, onerror) {
         const _this = this;
         _this.#src = src;
         if (!window.requestAnimationFrame) {
             window.requestAnimationFrame = window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame;
         }
+        // Add events:
+        _this.onRender   = onrender || function () {}
+        _this.onFinish   = onfinish || function () {}
+        _this.onError    = onerror  || function (e) { console.log(e); }
         // Fix and check arguments
         if (typeof element == "object") {
             options = element;
@@ -65,16 +73,16 @@ class NdJsonPlayer {
                 // create wrapper container
                 const wrapper = document.createElement('div');
                 player.parentNode.insertBefore(wrapper, player);
-                wrapper.appendChild(player);
+                wrapper.prepend(player);
                 player = wrapper;
             } else {
                 _this.#canvas = document.createElement("CANVAS");
-                player.append(_this.#canvas);
+                player.prepend(_this.#canvas);
             }
         } else {
             throw "Canvas element was not found in DOM: " + element;
         }
-        _this.player = player;
+        _this.#player = player;
         // Set classname for style
         player.classList.add("ndjp");
 
@@ -87,9 +95,6 @@ class NdJsonPlayer {
         _this.autoplay   = options.autoplay || false;
         _this.showfirst  = options.showfirst !== false;
         _this.path       = options.path || "";
-        _this.onRender   = options.onRender || function () {}
-        _this.onFinish   = options.onFinish || function () {}
-        _this.onError    = options.onError || function (e) { console.log(e); }
 
         // Initialize timer:
         _this.#timer = new Timer(1000 / _this.fps);
@@ -98,6 +103,9 @@ class NdJsonPlayer {
         _this.load(function (item) {
             if(item.fb !== undefined) {
                 _this.#frameBase = item.fb;
+            }
+            if(item.tf !== undefined) {
+                _this.#numFrames = item.tf;
             }
             if(item.fps !== undefined) {
                 _this.fps= item.fps;
@@ -269,6 +277,53 @@ class NdJsonPlayer {
         };
         img.src = image[0] === "/" || image.match(/^https?:/) || image.match(/^data:image/) ? image : _this.path + image;
         return this;
+    }
+
+    /**
+     * Get frame base
+     */
+    frameBase() {
+        return this.#frameBase;
+    }
+    /**
+     * Expose information about the current frame
+     * @returns {number}
+     * @private
+     */
+    currentFrame() {
+        return this.#frame;
+    }
+
+    /**
+     * Return number of frames
+     * @returns {number}
+     * @private
+     */
+    totalFrames() {
+        return this.#numFrames || this.#frames.length;
+    }
+
+    /**
+     * Return a frame in position
+     * @param position
+     */
+    frameAt(position) {
+        const _this = this;
+        position =  ~~((position * _this.totalFrames()) / 100);
+        let frame = (position < this.totalFrames()) ? _this.#frames[position] : null;
+        if(frame) {
+            frame.fb = _this.#frameBase;
+        }
+        return frame;
+    }
+
+    /**
+     * Return player Node
+     * @returns DOM node
+     * @private
+     */
+    playerNode() {
+        return this.#player;
     }
 
     /**

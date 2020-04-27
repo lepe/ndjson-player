@@ -4,16 +4,33 @@
     height: auto;
     background-color: $video_bg;
   }
-  nav {
+
+  .controls {
     background-color: $controls_bg;
     padding: $padding;
-    margin: 0;
-    margin-top: -4px; //FIXME
+    margin: -4px 0 0;
+
     a {
       color: $buttons_fg;
       padding: 0 $padding;
       text-decoration: none;
-      display: inline-block;
+
+      &:hover {
+        color: $buttons_hover;
+      }
+    }
+
+    label {
+      color: $buttons_fg;
+      font-family: monospace;
+      font-size: 80%;
+    }
+
+    progress {
+      width: 75%;
+      float: right;
+      vertical-align: middle;
+      margin-top: 5px;
     }
   }
 }

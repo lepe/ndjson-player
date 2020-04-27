@@ -11,7 +11,7 @@
             background-color: #222;
         }
         #video {
-            margin: auto;
+            margin: 10vh auto;
             width: 50vw;
         }
     </style>
@@ -31,6 +31,16 @@
     </script>
 </head>
 <body>
-    <div id="video"></div>
+    <div id="video">
+        <div class="controls">
+            <a class="play"></a>
+            <a class="pause"></a>
+            <a class="stop"></a>
+            <label class="lapse"></label>
+            <label class="frames"></label>
+            <progress></progress>
+            <img class="thumb" />
+        </div>
+    </div>
 </body>
 </html>
