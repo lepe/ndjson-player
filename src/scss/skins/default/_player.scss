@@ -1,4 +1,6 @@
 .ndjp.default {
+  position: relative;
+
   canvas {
     width: 100%;
     height: auto;
@@ -9,11 +11,15 @@
     background-color: $controls_bg;
     padding: $padding;
     margin: -4px 0 0;
+    display: flex;
+    line-height: 20px;
 
     a {
       color: $buttons_fg;
       padding: 0 $padding;
       text-decoration: none;
+      width: 20px;
+      text-align: center;
 
       &:hover {
         color: $buttons_hover;
@@ -27,10 +33,15 @@
     }
 
     progress {
-      width: 75%;
-      float: right;
       vertical-align: middle;
-      margin-top: 5px;
+      margin: 5px 5px 0 5px;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .thumb {
+      position: absolute;
+      bottom: 35px;
     }
   }
 }

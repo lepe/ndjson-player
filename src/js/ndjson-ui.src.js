@@ -22,7 +22,7 @@ class NDJPlayer extends NdJsonPlayer {
         this.#options = Object.assign({
             play: !_this.autoplay,
             stop: true,
-            pause: true, //_this.autoplay,
+            pause: _this.autoplay,
             step: true,
             progress: true,
             thumbs: true,
@@ -69,6 +69,8 @@ class NDJPlayer extends NdJsonPlayer {
                 href: "#",
                 onclick: function () {
                     _this.play();
+                    _this.#ui.play.show = false;
+                    _this.#ui.pause.show = true;
                     return false;
                 }
             },
@@ -80,6 +82,8 @@ class NDJPlayer extends NdJsonPlayer {
                 href: "#",
                 onclick: function () {
                     _this.pause();
+                    _this.#ui.play.show = true;
+                    _this.#ui.pause.show = false;
                     return false;
                 }
             },
@@ -97,35 +101,40 @@ class NDJPlayer extends NdJsonPlayer {
             lapse: {
                 show: _this.#options.lapse,
                 title: "Time elapsed / Time Total",
-                text: "0:00 / 0:00"
+                text: "0:00"
             },
             frames: {
                 show: _this.#options.frames,
                 title: "Current Frame / Total Frames",
-                text: "0 / 0"
+                text: "0"
             },
             progress: {
                 show: _this.#options.progress,
                 value: 0,
                 max: 100,
                 onmousemove: function (e) {
-                    let position = ~~(((e.pageX - this.offsetLeft) / this.clientWidth) * 100);
-                    let frame = _this.frameAt(position);
+                    let position = ~~(((e.offsetX) / this.offsetWidth) * 100);
+                    let frame = _this.frameAt(_this.indexAt(position));
                     if(frame) {
-                        _this.#ui.img = {
-                            src : _this.frameBase() + frame.th,
-                            /*style : {
-                                top :
-                                left:
-                            }*/
-                        }
+                        _this.#ui.img.show = true;
+                        _this.#ui.img.src = _this.frameBase() + frame.th;
                         let img = _this.#ui.img._node;
-                        img.style.left = (e.pageX - (img.width / 2)) + "px"
-                        img.style.top = (e.pageY - img.height - 15) + "px"
+                        img.style.left = (this.offsetLeft + e.offsetX - (img.width / 2)) + "px"
+                    } else {
+                        _this.#ui.img.show = false;
                     }
+                },
+                onmouseleave: function() {
+                    _this.#ui.img.show = false;
+                },
+                onclick: function(e) {
+                    let position = ~~(((e.offsetX) / this.offsetWidth) * 100);
+                    let index = _this.indexAt(position);
+                    _this.step(index);
                 }
             },
             img : {
+                show : false,
                 src : ""
             }
         });

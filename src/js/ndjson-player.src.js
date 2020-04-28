@@ -307,14 +307,23 @@ class NdJsonPlayer {
      * Return a frame in position
      * @param position
      */
-    frameAt(position) {
+    frameAt(index) {
         const _this = this;
-        position =  ~~((position * _this.totalFrames()) / 100);
-        let frame = (position < this.totalFrames()) ? _this.#frames[position] : null;
+        let frame = (index < this.totalFrames()) ? _this.#frames[index] : null;
         if(frame) {
             frame.fb = _this.#frameBase;
         }
         return frame;
+    }
+
+    /**
+     * Return index number at percentage of video
+     * @param percentage
+     * @returns {number}
+     */
+    indexAt(percentage) {
+        const _this = this;
+        return ~~((percentage * _this.totalFrames()) / 100);
     }
 
     /**
@@ -383,7 +392,16 @@ class NdJsonPlayer {
     /**
      * Move the video one frame in the current direction
      */
-    step() {
+    step(startFrame) {
+        if (startFrame < 0) {
+            startFrame = 0;
+        } else if (startFrame > this.#frames.length) {
+            startFrame = this.#frames.length - 1;
+        } else if (startFrame !== undefined) {
+            this.#frame = startFrame * 1;
+        }
+        this.#playing = false;
+        this.#timer.step();
         this._render(true);
     }
 
