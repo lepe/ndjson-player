@@ -24,9 +24,7 @@
       font-size: 80%; }
     .ndjp.default .controls progress {
       vertical-align: middle;
-      margin-left: 5px;
-      margin-top: 5px;
-      margin-right: 5px;
+      margin: 5px 5px 0 5px;
       cursor: pointer;
       width: 100%; }
     .ndjp.default .controls .thumb {
