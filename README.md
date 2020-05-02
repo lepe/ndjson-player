@@ -49,7 +49,7 @@ Files are located inside the [dist directory](https://github.com/lepe/ndjson-pla
 <script src="ndjson-player.min.js" type="text/javascript"></script>
 ```
 
-### Easy way (Using video-ng tag)
+### Easy way (Using video-nd tag)
 ```html
 <!-- Creates a player with the basic controls which starts automatically and restarts when finish -->
 <video-nd src="/video/demo.ndjson" controls loop autoplay></video-nd>
