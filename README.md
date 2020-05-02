@@ -41,6 +41,8 @@ Current version is: 0.1.0
 
 ## Usage
 
+Files are located inside the [dist directory](https://github.com/lepe/ndjson-player/tree/master/dist).
+
 ### Required CSS and JS
 ```html
 <link rel="stylesheet" href="ndjson-player.min.css" type="text/css">
