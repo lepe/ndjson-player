@@ -80,10 +80,7 @@ Current version is: 0.1.0
 new NDJPlayer("/video/demo-640.ndjson", "#video", {
     fps: 30,
     loop: true,
-    autoplay: true,
-    controls : {
-        stop : true
-    }
+    autoplay: true
 });
 ```
 ```html
