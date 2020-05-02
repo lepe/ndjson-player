@@ -1,9 +1,11 @@
-/*
+/**
   This player uses NDJSON files to play in sequence as a video
   Additionally, it may contain information about the frame
   Inspired in https://github.com/lepe/frame-player/ (by Vagner Santana)
 
-  @Since 2020-04-19
+ * https://github.com/lepe/ndjson-player
+ * @author A.Lepe
+ * @Since 2020-04-19
  */
 class NdJsonPlayer {
     // Options
@@ -24,7 +26,7 @@ class NdJsonPlayer {
     #player = null;     // DOM element which contains the <canvas> node
     #canvas = null;     // <canvas> DOM object
     #ctx = null;        // canvas.ctx object
-    #timer = null;      // Timer used to manage FPS
+    #timer = null;      // TimerSrc used to manage FPS
     #src = "";          // Video source URI (NDJSON)
     #numFrames = 0;     // Number of total frames (in header)
     #frames = [];       // Video content including metadata (array)
@@ -59,14 +61,19 @@ class NdJsonPlayer {
         _this.onFinish   = onfinish || function () {}
         _this.onError    = onerror  || function (e) { console.log(e); }
         // Fix and check arguments
-        if (typeof element == "object") {
-            options = element;
-            element = "canvas";
-        } else if (typeof element != "string") {
-            throw "Incorrect parameter passed to constructor of NdJsonPlayer";
+        let player = null;
+        if(element instanceof Node) {
+            player = element;
+        } else {
+            if (typeof element == "object") {
+                options = element;
+                element = "canvas";
+            } else if (typeof element != "string") {
+                throw "Incorrect parameter passed to constructor of NdJsonPlayer";
+            }
+            // Look for canvas
+            player = document.querySelector(element || "canvas");
         }
-        // Look for canvas
-        let player = document.querySelector(element || "canvas");
         if (player) {
             if (player.tagName === "CANVAS") {
                 _this.#canvas = player;
@@ -75,6 +82,11 @@ class NdJsonPlayer {
                 player.parentNode.insertBefore(wrapper, player);
                 wrapper.prepend(player);
                 player = wrapper;
+            } else if(player.hasChildNodes()) {
+                _this.#canvas = player.querySelector("canvas");
+                if(!_this.#canvas) {
+                    throw "No canvas found in element";
+                }
             } else {
                 _this.#canvas = document.createElement("CANVAS");
                 player.prepend(_this.#canvas);
@@ -97,7 +109,7 @@ class NdJsonPlayer {
         _this.path       = options.path || "";
 
         // Initialize timer:
-        _this.#timer = new Timer(1000 / _this.fps);
+        _this.#timer = new TimerSrc(1000 / _this.fps);
 
         // Load video:
         _this.load(function (item) {
@@ -109,7 +121,7 @@ class NdJsonPlayer {
             }
             if(item.fps !== undefined) {
                 _this.fps= item.fps;
-                _this.#timer = new Timer(1000 / _this.fps);
+                _this.#timer = new TimerSrc(1000 / _this.fps);
             }
             if(item.f !== undefined) {
                 _this.#frames.push(item);
@@ -162,7 +174,7 @@ class NdJsonPlayer {
      */
     _render(once) {
         if (this.#timer == null) {
-            throw "Timer was not initialized";
+            throw "TimerSrc was not initialized";
         }
         if(this.#frames.length === 0) {
             throw "Video is empty or no frames were found";

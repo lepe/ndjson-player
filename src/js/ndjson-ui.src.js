@@ -1,13 +1,34 @@
 /**
  * This class creates the player UI
+ * https://github.com/lepe/ndjson-player
+ * @author A.Lepe
+ * @since 04/2020
  */
-class NDJPlayer extends NdJsonPlayer {
-    #skin;      //Skin to use
+class NDJPlayer {
+    #ndjp;      //NdJsonPlayer object
     #options;   //Options for the UI
     #ui;        //The UI
 
     constructor(src, element, options, onrender) {
-        super(src, element, options, function (frame) {
+        const _this = this;
+        this.#options = Object.assign({
+            controls : false,
+            play: true,
+            //pause: true, : pause will be true if play is true
+            stop: false,
+            step: false,
+            progress: true,
+            thumbs: true,
+            fullscreen: false,
+            speed: false,
+            lapse: true,
+            frames: true
+        }, options || {});
+
+        // Create UI
+        this._create(element);
+        // Initialize player
+        this.#ndjp = new NdJsonPlayer(src, element, options, function (frame) {
             _this._onUpdate(frame);
             if (onrender !== undefined) {
                 onrender(frame);
@@ -17,23 +38,6 @@ class NDJPlayer extends NdJsonPlayer {
         }, function (e) {
             //Display error in player
         });
-        const _this = this;
-        this.#skin = options.skin || "default";
-        this.#options = Object.assign({
-            play: !_this.autoplay,
-            stop: true,
-            pause: _this.autoplay,
-            step: true,
-            progress: true,
-            thumbs: true,
-            fullscreen: false,
-            speed: false,
-            lapse: true,
-            frames: true
-        }, options.ui || {});
-
-        // Create UI
-        this._create();
     }
 
     /**
@@ -42,59 +46,51 @@ class NDJPlayer extends NdJsonPlayer {
      */
     _onUpdate(frame) {
         const _this = this;
-        _this.#ui.frames.text = _this.currentFrame() + "/" + _this.totalFrames()
-        _this.#ui.lapse.text = Utils.fmtTime(this.currentFrame() / _this.fps);
-        _this.#ui.progress.value = (_this.currentFrame() / (_this.totalFrames())) * 100;
+        _this.#ui.frames.text = _this.#ndjp.currentFrame() + "/" + _this.#ndjp.totalFrames()
+        _this.#ui.lapse.text = _this._fmtTime(_this.#ndjp.currentFrame() / _this.#ndjp.fps);
+        _this.#ui.progress.value = (_this.#ndjp.currentFrame() / (_this.#ndjp.totalFrames())) * 100;
     }
 
     /**
      * Creates the UI
+     * @param element Selector
      * @private
      */
-    _create() {
+    _create(element) {
         const _this = this;
-        _this.#ui = m2d2(_this.playerNode(), {
-            '+css': _this.#skin,
-            /*template : '<a class="play"></a>\n' +
-                '<a class="pause"></a>\n' +
-                '<a class="stop"></a>\n' +
-                '<label class="lapse"></label>\n' +
-                '<label class="frames"></label>\n' +
-                '<progress></progress>',*/
+        _this.#ui = m2d2(element, {
+            html : _this._getUI(element),
             play: {
-                '+css': ["fa", "fa-play"],
                 show: _this.#options.play,
                 title: "Play",
                 text: "▶️",
                 href: "#",
                 onclick: function () {
-                    _this.play();
+                    _this.#ndjp.play();
                     _this.#ui.play.show = false;
                     _this.#ui.pause.show = true;
                     return false;
                 }
             },
             pause: {
-                '+css': ["fa", "fa-pause"],
                 show: _this.#options.pause,
                 title: "Pause",
                 text: "⏸️",
                 href: "#",
                 onclick: function () {
-                    _this.pause();
+                    _this.#ndjp.pause();
                     _this.#ui.play.show = true;
                     _this.#ui.pause.show = false;
                     return false;
                 }
             },
             stop: {
-                '+css': ["fa", "fa-stop"],
                 show: _this.#options.stop,
                 title: "Stop",
                 text: "⏹️",
                 href: "#",
                 onclick: function () {
-                    _this.stop();
+                    _this.#ndjp.stop();
                     return false;
                 }
             },
@@ -114,29 +110,127 @@ class NDJPlayer extends NdJsonPlayer {
                 max: 100,
                 onmousemove: function (e) {
                     let position = ~~(((e.offsetX) / this.offsetWidth) * 100);
-                    let frame = _this.frameAt(_this.indexAt(position));
+                    let frame = _this.#ndjp.frameAt(_this.#ndjp.indexAt(position));
                     if(frame) {
-                        _this.#ui.img.show = true;
-                        _this.#ui.img.src = _this.frameBase() + frame.th;
-                        let img = _this.#ui.img._node;
+                        _this.#ui.thumb.show = true;
+                        _this.#ui.thumb.src = _this.#ndjp.frameBase() + (frame.th || frame.f);
+                        let img = _this.#ui.thumb._node;
                         img.style.left = (this.offsetLeft + e.offsetX - (img.width / 2)) + "px"
                     } else {
-                        _this.#ui.img.show = false;
+                        _this.#ui.thumb.show = false;
                     }
                 },
                 onmouseleave: function() {
-                    _this.#ui.img.show = false;
+                    _this.#ui.thumb.show = false;
                 },
                 onclick: function(e) {
                     let position = ~~(((e.offsetX) / this.offsetWidth) * 100);
-                    let index = _this.indexAt(position);
-                    _this.step(index);
+                    let index = _this.#ndjp.indexAt(position);
+                    _this.#ndjp.step(index);
                 }
             },
-            img : {
+            //sizes : ["SD", "HD", "4K"],
+            thumb : {
                 show : false,
                 src : ""
             }
         });
+    }
+
+    /**
+     * Format a time
+     * @param time int
+     * @returns {string}
+     * @private
+     */
+    _fmtTime(time) {
+        time = time.toFixed(2);
+        let decimal = time.split(".")[1] || "00";
+        return (~~(time / 60) + "").padStart(2, '0') + ":" + (~~((time / 60) % 1 * 60) + "").padStart(2, '0') + "." + decimal;
+    }
+
+    /**
+     * Choose the UI to display
+     * @param element Selector
+     * @returns {string|null}
+     * @private
+     */
+    _getUI(element) {
+        let html = "";
+        switch(this.#options.controls) {
+            case "":
+            case "basic":
+            case true:
+                html = this._getBasicUI(); break;
+            case "common":
+                html = this._getCommonUI(); break;
+            case "full":
+                html = this._getFullUI(); break;
+        }
+        if(typeof this.#options.controls === 'object') {
+
+        }
+        let root = element instanceof Node ? element : document.querySelector(element);
+        if(root) {
+            let canvas = root.querySelector("canvas");
+            if (!canvas) {
+                html = "<canvas></canvas>" + html;
+            }
+        } else {
+            console.log("Root element: " + element + " was not found in document");
+            html = "<canvas></canvas>" + html;
+        }
+        return (element.innerHTML || "") + html;
+    }
+
+    /**
+     * Basic UI
+     * @returns {string}
+     * @private
+     */
+    _getBasicUI() {
+        return `<caption></caption>
+<div class="controls">
+<a class="play"></a>
+<a class="pause"></a>
+<label class="lapse"></label>
+<img class="thumb" />
+<progress></progress>
+</div>`;
+    }
+
+    /**
+     * Common UI
+     * @returns {string}
+     * @private
+     */
+    _getCommonUI() {
+        return `<caption></caption>
+<div class="controls">
+<a class="play"></a>
+<a class="pause"></a>
+<label class="lapse"></label>
+<progress></progress>
+<label class="frames"></label>
+<img class="thumb" />
+</div>`;
+    }
+
+    /**
+     * Common UI
+     * @returns {string}
+     * @private
+     */
+    _getFullUI() {
+        return `<caption></caption>
+<div class="controls">
+<a class="play"></a>
+<a class="pause"></a>
+<a class="stop"></a>
+<label class="lapse"></label>
+<progress></progress>
+<label class="frames"></label>
+<img class="thumb" />
+</div>`;
     }
 }

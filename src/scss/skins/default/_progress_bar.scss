@@ -1,14 +1,18 @@
-progress {
-  border: 0;
-  height: 10px;
-  -webkit-appearance: none;
-  &::-webkit-progress-bar {
-    background-color: $buttons_bg;
-    border-radius: 2px;
-    padding: 2px;
-  }
-  &::-webkit-progress-value {
-    background-color: $buttons_fg;
-    border-radius: 2px;
+.ndjp {
+  progress {
+    border: 0;
+    height: 10px;
+    -webkit-appearance: none;
+
+    &::-webkit-progress-bar {
+      background-color: $buttons_bg;
+      border-radius: 2px;
+      padding: 2px;
+    }
+
+    &::-webkit-progress-value {
+      background-color: $buttons_fg;
+      border-radius: 2px;
+    }
   }
 }

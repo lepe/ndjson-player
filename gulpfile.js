@@ -13,12 +13,11 @@ const paths = {
 	build: 'dist',
 	src: 'src',
 	js: [
-		'src/js/utils.src.js',
-		'src/js/m2d2.src.js',
-		'src/js/m2d2.*.js',
-		'src/js/ndjson-player.*.js',
-		'src/js/ndjson-ui.*.js',
-		'src/js/*.js'
+		'src/js/m2d2.min.js',
+		'src/js/timer.src.js',
+		'src/js/ndjson-player.src.js',
+		'src/js/ndjson-ui.src.js',
+		'src/js/video-nd.src.js',
 	],
 	css: ['src/css/*.css'],
 	scss: ['src/scss/*.scss'],

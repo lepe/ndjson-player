@@ -1,49 +1,50 @@
-.ndjp.default {
-  position: relative; }
-  .ndjp.default canvas {
+.ndjp {
+  position: relative;
+  border: 1px solid black; }
+  .ndjp canvas {
     width: 100%;
     height: auto;
     background-color: black; }
-  .ndjp.default .controls {
+  .ndjp .controls {
     background-color: black;
     padding: 5px;
     margin: -4px 0 0;
     display: flex;
     line-height: 20px; }
-    .ndjp.default .controls a {
+    .ndjp .controls a {
       color: #999;
       padding: 0 5px;
       text-decoration: none;
       width: 20px;
       text-align: center; }
-      .ndjp.default .controls a:hover {
+      .ndjp .controls a:hover {
         color: white; }
-    .ndjp.default .controls label {
+    .ndjp .controls label {
       color: #999;
       font-family: monospace;
       font-size: 80%; }
-    .ndjp.default .controls progress {
+    .ndjp .controls progress {
       vertical-align: middle;
       margin: 5px 5px 0 5px;
       cursor: pointer;
       width: 100%; }
-    .ndjp.default .controls .thumb {
+    .ndjp .controls .thumb {
       position: absolute;
       bottom: 35px; }
 
-progress {
+.ndjp progress {
   border: 0;
   height: 10px;
   -webkit-appearance: none; }
-  progress::-webkit-progress-bar {
+  .ndjp progress::-webkit-progress-bar {
     background-color: #333;
     border-radius: 2px;
     padding: 2px; }
-  progress::-webkit-progress-value {
+  .ndjp progress::-webkit-progress-value {
     background-color: #999;
     border-radius: 2px; }
 
-.ndjp.default img.thumb {
+.ndjp img.thumb {
   position: absolute;
   border: 3px solid black;
   border-radius: 4px; }

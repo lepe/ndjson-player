@@ -5,8 +5,8 @@ if [[ $1 == "" ]]; then
     exit;
 fi
 
-dir=$1
-thDir=$2
+dir=${1%/}
+thDir=${2%/}
 totalFrames=$(ls -l "$dir"/*.jpg | wc -l);
 fps=24
 echo "{\"fb\":\"data:image/jpeg;base64,\", \"tf\": $totalFrames, \"fps\": $fps }" > $dir.ndjson
@@ -14,6 +14,10 @@ for frame in $dir/*.jpg
 do
     fileBase=$(basename $frame);
     b64=$(base64 -w 0 $frame);
-    thb64=$(base64 -w 0 $thDir/$fileBase);
-    echo "{\"f\":\"$b64\", \"th\":\"$thb64\" }" >> $dir.ndjson
+    if [[ $thb64 != "" ]]; then
+      thb64=$(base64 -w 0 $thDir/$fileBase);
+      echo "{\"f\":\"$b64\", \"th\":\"$thb64\" }" >> $dir.ndjson
+    else
+      echo "{\"f\":\"$b64\"}" >> $dir.ndjson
+    fi
 done

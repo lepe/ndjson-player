@@ -4,9 +4,8 @@ if [[ $2 == "" ]]; then
     echo "Usage: $0 DIR WIDTH"
     exit;
 fi
-dir=$1
+dir=${1%/}
 width=$2
-echo "Resizing $video ..."
+echo "Resizing $dir..."
 mkdir -p "$dir-$width/"
-#find $dir -name "*.jpg" -exec convert {} -resize "$width"x"$width" $dir-$width/$(basename {}) \;
-mogrify -resize "$width"x"$width" -path "$dir-$width" $dir/*.jpg 
+mogrify -resize "$width"x"$width" -path "$dir-$width" $dir/*.jpg
