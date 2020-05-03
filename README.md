@@ -3,6 +3,8 @@
 NDJsonPlayer (or video-nd) uses [NDJSON](http://ndjson.org/) as source and metadata.
 It can play a sequence of images as a video and keep metadata synchronized at frame level.
 
+**NOTE** : Current version is in beta stage. Webkit browsers are only supported for now.
+
 ## Why?
 
 When working with a sequence of images and metadata (information related to each frame),
