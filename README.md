@@ -29,9 +29,9 @@ For this reason, NDJSON data is more suitable to use a video container than JSON
 
 ## Demo:
 
-[Live example 1 : 640px](https://lepe.github.io/ndjson-player/)
-[Live example 2 : 240px](https://lepe.github.io/ndjson-player/index-240.html)
-[Live example 3 : 1024px](https://lepe.github.io/ndjson-player/index-1024.html)
+* [Live example 1 : 640px](https://lepe.github.io/ndjson-player/)
+* [Live example 2 : 240px](https://lepe.github.io/ndjson-player/index-240.html)
+* [Live example 3 : 1024px](https://lepe.github.io/ndjson-player/index-1024.html)
 
 ## Version
 
@@ -41,18 +41,22 @@ Current version is: 0.1.0
 
 ## Usage
 
+Files are located inside the [dist directory](https://github.com/lepe/ndjson-player/tree/master/dist).
+
 ### Required CSS and JS
 ```html
 <link rel="stylesheet" href="ndjson-player.min.css" type="text/css">
 <script src="ndjson-player.min.js" type="text/javascript"></script>
 ```
 
-### Easy way (Using video-ng tag)
+### Easy way (Using video-nd tag)
 ```html
 <!-- Creates a player with the basic controls which starts automatically and restarts when finish -->
 <video-nd src="/video/demo.ndjson" controls loop autoplay></video-nd>
+
 <!-- Creates a player with the most common UI: basic + [thumbs, fullscreen, sizes, lapse] -->
 <video-nd src="/video/demo.ndjson" controls="common"></video-nd>
+
 <!-- Creates a player with all UI options: common + [speed, frames, cc, step, stop, back, step_back, fast, fast_back] -->
 <video-nd src="/video/demo.ndjson" controls="full"></video-nd>
 ```
@@ -80,10 +84,7 @@ Current version is: 0.1.0
 new NDJPlayer("/video/demo-640.ndjson", "#video", {
     fps: 30,
     loop: true,
-    autoplay: true,
-    controls : {
-        stop : true
-    }
+    autoplay: true
 });
 ```
 ```html
