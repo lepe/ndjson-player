@@ -1,5 +1,6 @@
 #!/bin/bash
 # This script convert a directory with jpg images into ndjson file to use in the player
+# encoding each frame to base64
 if [[ $1 == "" ]]; then
     echo "Usage: $0 DIRECTORY [DIRECTORY_THUMBS]"
     exit;
@@ -14,7 +15,7 @@ for frame in $dir/*.jpg
 do
     fileBase=$(basename $frame);
     b64=$(base64 -w 0 $frame);
-    if [[ $thb64 != "" ]]; then
+    if [[ $thDir != "" ]]; then
       thb64=$(base64 -w 0 $thDir/$fileBase);
       echo "{\"f\":\"$b64\", \"th\":\"$thb64\" }" >> $dir.ndjson
     else
