@@ -23,19 +23,19 @@ class NdJsonPlayer {
     onError;    // Callback when there is an error with the source
 
     // Private
-    #player = null;     // DOM element which contains the <canvas> node
-    #canvas = null;     // <canvas> DOM object
-    #ctx = null;        // canvas.ctx object
-    #timer = null;      // TimerSrc used to manage FPS
-    #src = "";          // Video source URI (NDJSON)
-    #numFrames = 0;     // Number of total frames (in header)
-    #frames = [];       // Video content including metadata (array)
-    #frame = 0;         // Current frame being played
-    #frameBase = ""     // Base for all frames 'fb'
-    #loaded  = false;   // If a frame has been loaded or not
-    #playing = false;   // Status
-    #backwards = false; // If playing backwards
-    #multiplier = 1;    // Multiplier to control speed
+    _player = null;     // DOM element which contains the <canvas> node
+    _canvas = null;     // <canvas> DOM object
+    _ctx = null;        // canvas.ctx object
+    _timer = null;      // TimerSrc used to manage FPS
+    _src = "";          // Video source URI (NDJSON)
+    _numFrames = 0;     // Number of total frames (in header)
+    _frames = [];       // Video content including metadata (array)
+    _frame = 0;         // Current frame being played
+    _frameBase = ""     // Base for all frames 'fb'
+    _loaded  = false;   // If a frame has been loaded or not
+    _playing = false;   // Status
+    _backwards = false; // If playing backwards
+    _multiplier = 1;    // Multiplier to control speed
 
     /**
      * Examples:
@@ -52,7 +52,7 @@ class NdJsonPlayer {
      */
     constructor(src, element, options, onrender, onfinish, onerror) {
         const _this = this;
-        _this.#src = src;
+        _this._src = src;
         if (!window.requestAnimationFrame) {
             window.requestAnimationFrame = window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame;
         }
@@ -76,30 +76,32 @@ class NdJsonPlayer {
         }
         if (player) {
             if (player.tagName === "CANVAS") {
-                _this.#canvas = player;
+                _this._canvas = player;
                 // create wrapper container
                 const wrapper = document.createElement('div');
                 player.parentNode.insertBefore(wrapper, player);
                 wrapper.prepend(player);
                 player = wrapper;
             } else if(player.hasChildNodes()) {
-                _this.#canvas = player.querySelector("canvas");
-                if(!_this.#canvas) {
+                _this._canvas = player.querySelector("canvas");
+                if(!_this._canvas) {
                     throw "No canvas found in element";
                 }
             } else {
-                _this.#canvas = document.createElement("CANVAS");
-                player.prepend(_this.#canvas);
+                _this._canvas = document.createElement("CANVAS");
+                player.prepend(_this._canvas);
             }
         } else {
             throw "Canvas element was not found in DOM: " + element;
         }
-        _this.#player = player;
+        _this._player = player;
+        _this._canvas.height = _this._canvas.clientHeight;
+        _this._canvas.width  = _this._canvas.clientWidth;
         // Set classname for style
         player.classList.add("ndjp");
 
         // Set context
-        _this.#ctx = _this.#canvas.getContext("2d");
+        _this._ctx = _this._canvas.getContext("2d");
 
         // Options:
         _this.fps        = options.fps || 24;
@@ -109,25 +111,25 @@ class NdJsonPlayer {
         _this.path       = options.path || "";
 
         // Initialize timer:
-        _this.#timer = new TimerSrc(1000 / _this.fps);
+        _this._timer = new TimerSrc(1000 / _this.fps);
 
         // Load video:
         _this.load(function (item) {
             if(item.fb !== undefined) {
-                _this.#frameBase = item.fb;
+                _this._frameBase = item.fb;
             }
             if(item.tf !== undefined) {
-                _this.#numFrames = item.tf;
+                _this._numFrames = item.tf;
             }
             if(item.fps !== undefined) {
                 _this.fps= item.fps;
-                _this.#timer = new TimerSrc(1000 / _this.fps);
+                _this._timer = new TimerSrc(1000 / _this.fps);
             }
             if(item.f !== undefined) {
-                _this.#frames.push(item);
+                _this._frames.push(item);
                 // AutoPlay:
-                if (!_this.#loaded) {
-                    _this.#loaded = true;
+                if (!_this._loaded) {
+                    _this._loaded = true;
                     if (_this.autoplay) {
                         _this.play();
                     } else if (_this.showfirst) {
@@ -146,12 +148,12 @@ class NdJsonPlayer {
     load(callback, newSrc) {
         const _this = this;
         if(newSrc !== undefined) {
-            this.#src = newSrc;
-            this.#frames = [];
+            this._src = newSrc;
+            this._frames = [];
         }
         const decoder = new TextDecoder();
         let buffer = '';
-        return fetch(_this.#src)
+        return fetch(_this._src)
             .then(resp => resp.body.getReader())
             .then(reader => reader.read()
                 .then(function process ({ value, done }) {
@@ -173,18 +175,18 @@ class NdJsonPlayer {
      * @param once single step
      */
     _render(once) {
-        if (this.#timer == null) {
+        if (this._timer == null) {
             throw "TimerSrc was not initialized";
         }
-        if(this.#frames.length === 0) {
+        if(this._frames.length === 0) {
             throw "Video is empty or no frames were found";
         }
 
-        if(this.#frame >= this.#frames.length) {
-            this.#frame = this.loop ? 0 : this.#frames.length;
+        if(this._frame >= this._frames.length) {
+            this._frame = this.loop ? 0 : this._frames.length;
         }
-        if(this.#frame < 0) {
-            this.#frame = this.loop ? this.#frames.length - 1: 0;
+        if(this._frame < 0) {
+            this._frame = this.loop ? this._frames.length - 1: 0;
         }
         this._displayImg(once);
     }
@@ -195,20 +197,20 @@ class NdJsonPlayer {
      */
     _displayImg(once) {
         const _this = this;
-        const item = _this.#frames[_this.#frame];
+        const item = _this._frames[_this._frame];
         _this.onRender(item);
         const next = function() {
-            _this.#timer.call(function () {
+            _this._timer.call(function () {
                 if (!once) {
                     _this._increment();
                     //Do not execute anything until its loaded
-                    _this.#timer.nocall();
+                    _this._timer.nocall();
                 }
                 _this._displayImg();
             });
         }
         if(item.f !== undefined) {
-            const frame = _this.#frameBase + item.f;
+            const frame = _this._frameBase + item.f;
             _this._image(frame, next);
         } else {
             next();
@@ -219,20 +221,20 @@ class NdJsonPlayer {
      * Increment frame
      */
     _increment() {
-        this.#frame += (this.#multiplier * (this.#backwards ? -1 : 1));
-        if(this.#frame < 0) {
+        this._frame += (this._multiplier * (this._backwards ? -1 : 1));
+        if(this._frame < 0) {
             if(this.loop) {
-                this.#frame = this.#frames.length - 1;
+                this._frame = this._frames.length - 1;
             } else {
-                this.#frame = 0;
+                this._frame = 0;
                 this.pause();
             }
         }
-        if(this.#frame > this.#frames.length - 1) {
+        if(this._frame > this._frames.length - 1) {
             if(this.loop) {
-                this.#frame = 0;
+                this._frame = 0;
             } else {
-                this.#frame = this.#frames.length - 1;
+                this._frame = this._frames.length - 1;
                 this.pause();
             }
         }
@@ -253,9 +255,9 @@ class NdJsonPlayer {
                 callback(false);
             }
         } else {
-            _this.#ctx.save();
-            _this.#ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, _this.#canvas.width, _this.#canvas.height);
-            _this.#ctx.restore();
+            _this._ctx.save();
+            _this._ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, _this._canvas.width, _this._canvas.height);
+            _this._ctx.restore();
             if(callback !== undefined) {
                 callback(true);
             }
@@ -295,7 +297,7 @@ class NdJsonPlayer {
      * Get frame base
      */
     frameBase() {
-        return this.#frameBase;
+        return this._frameBase;
     }
     /**
      * Expose information about the current frame
@@ -303,7 +305,7 @@ class NdJsonPlayer {
      * @private
      */
     currentFrame() {
-        return this.#frame;
+        return this._frame;
     }
 
     /**
@@ -312,7 +314,7 @@ class NdJsonPlayer {
      * @private
      */
     totalFrames() {
-        return this.#numFrames || this.#frames.length;
+        return this._numFrames || this._frames.length;
     }
 
     /**
@@ -321,9 +323,9 @@ class NdJsonPlayer {
      */
     frameAt(index) {
         const _this = this;
-        let frame = (index < this.totalFrames()) ? _this.#frames[index] : null;
+        let frame = (index < this.totalFrames()) ? _this._frames[index] : null;
         if(frame) {
-            frame.fb = _this.#frameBase;
+            frame.fb = _this._frameBase;
         }
         return frame;
     }
@@ -344,7 +346,7 @@ class NdJsonPlayer {
      * @private
      */
     playerNode() {
-        return this.#player;
+        return this._player;
     }
 
     /**
@@ -354,13 +356,13 @@ class NdJsonPlayer {
     play(startFrame) {
         if (startFrame < 0) {
             startFrame = 0;
-        } else if (startFrame > this.#frames.length) {
-            startFrame = this.#frames.length - 1;
+        } else if (startFrame > this._frames.length) {
+            startFrame = this._frames.length - 1;
         } else if (startFrame !== undefined) {
-            this.#frame = startFrame * 1;
+            this._frame = startFrame * 1;
         }
-        this.#playing = true;
-        this.#timer.play();
+        this._playing = true;
+        this._timer.play();
         this._render(false);
     }
 
@@ -370,7 +372,7 @@ class NdJsonPlayer {
      * @param startFrame
      */
     playForward(startFrame) {
-        this.#backwards = false;
+        this._backwards = false;
         this.play(startFrame);
     }
 
@@ -379,7 +381,7 @@ class NdJsonPlayer {
      * @param startFrame
      */
     playBackwards(startFrame) {
-        this.#backwards = true;
+        this._backwards = true;
         this.play(startFrame);
     }
 
@@ -387,17 +389,17 @@ class NdJsonPlayer {
      * Pause the video
      */
     pause() {
-        this.#playing = false;
-        this.#timer.pause();
+        this._playing = false;
+        this._timer.pause();
     }
 
     /**
      * Stop the video (and go back to the beginning)
      */
     stop() {
-        this.#playing = false;
-        this.#frame = 0;
-        this.#timer.pause();
+        this._playing = false;
+        this._frame = 0;
+        this._timer.pause();
         this._displayImg(true);
     }
 
@@ -407,13 +409,13 @@ class NdJsonPlayer {
     step(startFrame) {
         if (startFrame < 0) {
             startFrame = 0;
-        } else if (startFrame > this.#frames.length) {
-            startFrame = this.#frames.length - 1;
+        } else if (startFrame > this._frames.length) {
+            startFrame = this._frames.length - 1;
         } else if (startFrame !== undefined) {
-            this.#frame = startFrame * 1;
+            this._frame = startFrame * 1;
         }
-        this.#playing = false;
-        this.#timer.step();
+        this._playing = false;
+        this._timer.step();
         this._render(true);
     }
 
@@ -421,7 +423,7 @@ class NdJsonPlayer {
      * Move one frame forwards (and change direction)
      */
     stepForwards() {
-        this.#backwards = false;
+        this._backwards = false;
         this.step()
     }
 
@@ -429,7 +431,7 @@ class NdJsonPlayer {
      * Move one frame backwards (and change direction)
      */
     stepBackwards() {
-        this.#backwards = true;
+        this._backwards = true;
         this.step()
     }
 
@@ -438,12 +440,12 @@ class NdJsonPlayer {
      * @returns {NdJsonPlayer}
      */
     reset() {
-        if (this.#ctx.reset !== undefined) {
-            this.#ctx.reset();
-            this.#ctx.clear();
+        if (this._ctx.reset !== undefined) {
+            this._ctx.reset();
+            this._ctx.clear();
             this.stop();
             //Reset all: The following line is a "hack" to force it to reset:
-            this.#canvas.width = this.#canvas.width;
+            this._canvas.width = this._canvas.width;
         }
         return this;
     }

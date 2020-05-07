@@ -1,7 +1,5 @@
 const gulp = require('gulp'),
 	concat = require('gulp-concat'),
-	babel = require('gulp-babel'),
-	//uglify = require('gulp-uglify-es').default,
 	terser = require('gulp-terser'),
 	cssmin = require('gulp-cssmin'),
 	sassGlob = require('gulp-sass-glob'),
@@ -9,7 +7,7 @@ const gulp = require('gulp'),
 	del    = require('del');
 
 const paths = {
-	prefix: 'ndjson-player.min',
+	prefix: 'ndjson-player',
 	build: 'dist',
 	src: 'src',
 	js: [
@@ -30,9 +28,14 @@ gulp.task('clean', function(cb) {
 
 gulp.task('js', ["clean"], function() {
 	return gulp.src(paths.js)
-		//.pipe(babel({ presets: ['es2015', 'stage-3'] }))
-		//.pipe(terser())
-		.pipe(concat(paths.prefix + '.js'))
+		.pipe(terser())
+		.pipe(concat(paths.prefix + '.min.js'))
+		.pipe(gulp.dest(paths.build));
+});
+
+gulp.task('js-dev', ["clean"], function() {
+	return gulp.src(paths.js)
+		.pipe(concat(paths.prefix + '.dev.js'))
 		.pipe(gulp.dest(paths.build));
 });
 
@@ -47,7 +50,7 @@ gulp.task('sass', ["clean"], function () {
 gulp.task('css', ["clean", "sass"], function() {
 	return gulp.src(paths.css)
 		.pipe(cssmin())
-		.pipe(concat(paths.prefix +  '.css'))
+		.pipe(concat(paths.prefix +  '.min.css'))
 		.pipe(gulp.dest(paths.build));
 });
 
@@ -59,4 +62,4 @@ gulp.task('watch', function() {
 });
 
 // Build
-gulp.task('default', ['clean', 'js', 'sass', 'css']);
+gulp.task('default', ['clean', 'js', 'js-dev', 'sass', 'css']);
