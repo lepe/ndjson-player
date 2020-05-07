@@ -198,8 +198,8 @@ class NdJsonPlayer {
     _displayImg(once) {
         const _this = this;
         const item = _this._frames[_this._frame];
-        _this.onRender(item);
         const next = function() {
+            _this.onRender(item);
             _this._timer.call(function () {
                 if (!once) {
                     _this._increment();
@@ -213,6 +213,7 @@ class NdJsonPlayer {
             const frame = _this._frameBase + item.f;
             _this._image(frame, next);
         } else {
+            _this.onRender(item);
             next();
         }
     }

@@ -34,5 +34,16 @@
 </head>
 <body>
     <video-nd src="video/running/running-640.ndjson" controls="common" loop></video-nd>
+    <script type="text/javascript">
+        /*
+            Example on how to add your own captions:
+         */
+        document.querySelector("video-nd").onrender = function(frame, player, canvas, ctx) {
+            ctx.font = "16px Arial";
+            ctx.fillStyle = "yellow";
+            ctx.fontWeight = "bold";
+            ctx.fillText(new Date(Date.now()).toLocaleTimeString(), 10, 30);
+        }
+    </script>
 </body>
 </html>

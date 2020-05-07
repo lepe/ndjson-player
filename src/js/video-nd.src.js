@@ -83,7 +83,12 @@ class VideoND extends HTMLElement {
         // create shadow dom root
         this._root = this; //this.attachShadow({mode: 'open'});
         //this._root.innerHTML = ``;
-        new NDJPlayer(options.src, this, options);
+        const root = this;
+        const ndjPlayer = new NDJPlayer(options.src, this, options, function(frame) {
+            if(root.onrender !== undefined) {
+                root.onrender(frame, ndjPlayer, ndjPlayer._ndjp._canvas, ndjPlayer._ndjp._ctx);
+            }
+        });
     }
 
     setCaption(caption) {

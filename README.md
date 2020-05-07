@@ -19,6 +19,7 @@ For this reason, NDJSON data is more suitable to use a video container than JSON
 
 ## Features:
 
+* Small size : Its only 20Kb (including css).
 * Fast loading : It can start playing as frames are downloaded (It doesn't need to download the whole file). 
 * Fast rendering : Each JSON frame is rendered as it is being parsed. 
 * Simplicity : Its simple as any HTML tag.
@@ -62,6 +63,30 @@ Files are located inside the [dist directory](https://github.com/lepe/ndjson-pla
 <!-- Creates a player with all UI options: common + [speed, frames, cc, step, stop, back, step_back, fast, fast_back] -->
 <video-nd src="/video/demo.ndjson" controls="full"></video-nd>
 ```
+
+### Using onrender() event:
+You can add the `onrender` event to your `<video-nd>` element to process frames.
+For example, you may:
+
+- Add captions into the canvas  (see Example)
+- Add animations or shapes intro the video  in relation to the frames.
+- Add conditions to stop, pause or change the video speed.
+- Change other elements in the page to synchronize them with the video.
+
+Example:
+```js
+document.querySelector("video-nd").onrender = function(frame, player, canvas, ctx) {
+    ctx.font = "16px Arial";
+    ctx.fillStyle = "yellow";
+    ctx.fontWeight = "bold";
+    ctx.fillText(new Date(Date.now()).toLocaleTimeString(), 10, 30);
+}
+```
+In which:
+* frame  : is the JSON object containing the metadata and the image information
+* player : NdJsonPlayer instance. You can perform actions in it (see below).
+* canvas : `<canvas>` element
+* ctx    : canvas 2D context
 
 ### Advanced HTML example:
 ```html
@@ -151,6 +176,7 @@ Keys that will normally go in each frame:
   "cc"  : "Close caption that will be placed under the video",
   "x"   : "Repeat: How many times this frame will be repeated (see notes below)",
   "th"  : "Thumbnail (this will also use the value of 'fb' if present)"
+  "tc"  : "Thumbnail caption"
 }
 ```
 #### About 'Date/Time and timestamp':
