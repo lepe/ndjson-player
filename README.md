@@ -1,5 +1,6 @@
+### Warning
 ```diff
-- **NOTE** : Current player is **BETA** version, which means not all features have been implemented.
+- Current player is BETA version, which means not all features have been implemented.
 - Because it uses Javascript ES6+ it won't work with old browsers (Currently untested in Edge).
  ```
 
