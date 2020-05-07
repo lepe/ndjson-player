@@ -1,9 +1,11 @@
+<span>**NOTE** : Current player is **BETA** version, which means not all features have been implemented.
+ Because it uses Javascript ES6+ it won't work with old browsers (Currently untested in Edge).
+</span>
+
 # ndjson-player
 
 NDJsonPlayer (or video-nd) uses [NDJSON](http://ndjson.org/) as source and metadata.
 It can play a sequence of images as a video and keep metadata synchronized at frame level.
-
-**NOTE** : Current version is in beta stage. Webkit browsers are only supported for now.
 
 ## Why?
 
@@ -35,12 +37,6 @@ For this reason, NDJSON data is more suitable to use a video container than JSON
 * [Live example 1 : 640px](https://lepe.github.io/ndjson-player/)
 * [Live example 2 : 240px](https://lepe.github.io/ndjson-player/index-240.html)
 * [Live example 3 : 1024px](https://lepe.github.io/ndjson-player/index-1024.html)
-
-## Version
-
-Current version is: 0.1.0
-
-**NOTE** : This player uses Javascript ES6+ features, so it won't work with old browsers.
 
 ## Usage
 
