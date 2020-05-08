@@ -112,6 +112,7 @@ class NdJsonPlayer {
     _timer = null;      // TimerSrc used to manage FPS
     _src = "";          // Video source URI (NDJSON)
     _numFrames = 0;     // Number of total frames (in header)
+    _totTime   = 0;     // Number of total time (in header)
     _frames = [];       // Video content including metadata (array)
     _frame = 0;         // Current frame being played
     _frameBase = ""     // Base for all frames 'fb'
@@ -203,6 +204,9 @@ class NdJsonPlayer {
             }
             if(item.tf !== undefined) {
                 _this._numFrames = item.tf;
+            }
+            if(item.tt !== undefined) {
+                _this._totTime = item.tt;
             }
             if(item.fps !== undefined) {
                 _this.fps= item.fps;
@@ -402,6 +406,15 @@ class NdJsonPlayer {
     }
 
     /**
+     * Return total time of video
+     * @returns {number}
+     * @private
+     */
+    totalTime() {
+        return this._totTime || this.currentFrame() / this.fps;
+    }
+
+    /**
      * Return a frame in position
      * @param position
      */
@@ -584,7 +597,7 @@ class NDJPlayer {
     _onUpdate(frame) {
         const _this = this;
         _this._ui.frames.text = _this._ndjp.currentFrame() + "/" + _this._ndjp.totalFrames()
-        _this._ui.lapse.text = _this._fmtTime(_this._ndjp.currentFrame() / _this._ndjp.fps);
+        _this._ui.lapse.text = frame.t !== undefined ? frame.t + (_this._ndjp._totTime > 0 ? "/" + _this._ndjp.totalTime() : ""): _this._fmtTime(_this._ndjp.totalTime());
         _this._ui.progress.value = (_this._ndjp.currentFrame() / (_this._ndjp.totalFrames())) * 100;
     }
 

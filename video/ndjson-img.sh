@@ -11,14 +11,15 @@ dir=${1%/}
 thDir=${2%/}
 totalFrames=$(ls -l "$dir"/*.jpg | wc -l);
 fps=24
-echo "{\"fb\":\"$dir/\", \"tf\": $totalFrames, \"fps\": $fps }" > $dir.ndjson
+echo "{\"fb\":\"video/$dir/\", \"tf\": $totalFrames, \"fps\": $fps }" > $dir.ndjson
 for frame in $dir/*.jpg
 do
     fileBase=$(basename $frame);
+    modDate=$(stat -c %y $frame);
     if [[ $thDir != "" ]]; then
       thb="$thDir/$fileBase";
       echo "{\"f\":\"$fileBase\", \"th\":\"$thb\" }" >> $dir.ndjson
     else
-      echo "{\"f\":\"$fileBase\"}" >> $dir.ndjson
+      echo "{\"f\":\"$fileBase\", \"t\":\"$modDate\"}" >> $dir.ndjson
     fi
 done

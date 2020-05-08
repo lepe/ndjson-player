@@ -162,7 +162,9 @@ Keys that will normally go in the header of a ndjson video file:
   "fps" : "Video FPS",
   "d"   : "Date, for example: 2020-01-01 (any format is fine)",
   "tf"  : "Total frames (number of frames in the video)",
-  "tt"  : "Total time of the video, for example: '00:09:54'"
+  "tt"  : "Total time of the video, for example: '00:09:54'",
+  "w"   : "Original width of the video (used to adjust canvas size)",
+  "h"   : "Original height of the video (used to adjust canvas size)",
 }
 ```
 Keys that will normally go in each frame:

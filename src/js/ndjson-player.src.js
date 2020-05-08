@@ -29,6 +29,7 @@ class NdJsonPlayer {
     _timer = null;      // TimerSrc used to manage FPS
     _src = "";          // Video source URI (NDJSON)
     _numFrames = 0;     // Number of total frames (in header)
+    _totTime   = 0;     // Number of total time (in header)
     _frames = [];       // Video content including metadata (array)
     _frame = 0;         // Current frame being played
     _frameBase = ""     // Base for all frames 'fb'
@@ -120,6 +121,9 @@ class NdJsonPlayer {
             }
             if(item.tf !== undefined) {
                 _this._numFrames = item.tf;
+            }
+            if(item.tt !== undefined) {
+                _this._totTime = item.tt;
             }
             if(item.fps !== undefined) {
                 _this.fps= item.fps;
@@ -316,6 +320,15 @@ class NdJsonPlayer {
      */
     totalFrames() {
         return this._numFrames || this._frames.length;
+    }
+
+    /**
+     * Return total time of video
+     * @returns {number}
+     * @private
+     */
+    totalTime() {
+        return this._totTime || this.currentFrame() / this.fps;
     }
 
     /**

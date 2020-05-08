@@ -47,7 +47,7 @@ class NDJPlayer {
     _onUpdate(frame) {
         const _this = this;
         _this._ui.frames.text = _this._ndjp.currentFrame() + "/" + _this._ndjp.totalFrames()
-        _this._ui.lapse.text = _this._fmtTime(_this._ndjp.currentFrame() / _this._ndjp.fps);
+        _this._ui.lapse.text = frame.t !== undefined ? frame.t + (_this._ndjp._totTime > 0 ? "/" + _this._ndjp.totalTime() : ""): _this._fmtTime(_this._ndjp.totalTime());
         _this._ui.progress.value = (_this._ndjp.currentFrame() / (_this._ndjp.totalFrames())) * 100;
     }
 

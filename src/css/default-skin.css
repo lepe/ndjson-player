@@ -22,6 +22,7 @@
     .ndjp .controls label {
       color: #999;
       font-family: monospace;
+      white-space: nowrap;
       font-size: 80%; }
     .ndjp .controls progress {
       vertical-align: middle;
