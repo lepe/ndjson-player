@@ -84,11 +84,19 @@ class VideoND extends HTMLElement {
         this._root = this; //this.attachShadow({mode: 'open'});
         //this._root.innerHTML = ``;
         const root = this;
-        const ndjPlayer = new NDJPlayer(options.src, this, options, function(frame) {
-            if(root.onrender !== undefined) {
-                root.onrender(frame, ndjPlayer, ndjPlayer._ndjp._canvas, ndjPlayer._ndjp._ctx);
+        const ndjPlayer = new NDJPlayer(options.src, this, options, function (player) {
+            if(root.onload !== undefined) {
+                root.onload(player);
             }
-        });
+        },function(frame) {
+            if(root.onrender !== undefined) {
+                root.onrender(frame, ndjPlayer.ndjp, ndjPlayer, ndjPlayer.ndjp.canvas, ndjPlayer.ndjp.ctx);
+            }
+        }, function (action, player, ui) {
+            if(root.onaction !== undefined) {
+                root.onaction(action, player, ui);
+            }
+        })
     }
 
     setCaption(caption) {

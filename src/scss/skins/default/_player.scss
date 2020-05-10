@@ -1,6 +1,8 @@
 .ndjp {
   position: relative;
   border: 1px solid black;
+  background-color: $video_bg;
+  text-align: center;
 
   canvas {
     width: 100%;
@@ -44,6 +46,18 @@
     .thumb {
       position: absolute;
       bottom: 35px;
+      border: 1px solid black;
+      margin: 0;
+      padding: 0;
+      background-color: $controls_bg;
+      img {
+        max-width: 100%;
+      }
+      .caption {
+        font-size: 80%;
+        overflow: hidden;
+        text-align: center;
+      }
     }
   }
 }
