@@ -44,6 +44,8 @@ For this reason, NDJSON data is more suitable to use a video container than JSON
 
 Files are located inside the [dist directory](https://github.com/lepe/ndjson-player/tree/master/dist).
 
+or you can install with: `npm i ndjson-player`
+
 ### Required CSS and JS
 ```html
 <link rel="stylesheet" href="ndjson-player.min.css" type="text/css">
@@ -186,7 +188,7 @@ Keys that will normally go in the header of a ndjson video file:
   "tf"  : "Total frames (number of frames in the video)",
   "tt"  : "Total time of the video, for example: '00:09:54'",
   "w"   : "Original width of the video (used to adjust canvas size)",
-  "h"   : "Original height of the video (used to adjust canvas size)",
+  "h"   : "Original height of the video (used to adjust canvas size)"
 }
 ```
 Keys that will normally go in each frame:
@@ -197,7 +199,7 @@ Keys that will normally go in each frame:
   "ts"  : "timestamp in Unix Time",
   "cc"  : "Close caption that will be placed under the video",
   "x"   : "Repeat: How many times this frame will be repeated (see notes below)",
-  "th"  : "Thumbnail (this will also use the value of 'fb' if present)"
+  "th"  : "Thumbnail (this will also use the value of 'fb' if present)",
   "tc"  : "Thumbnail caption"
 }
 ```
@@ -281,9 +283,11 @@ It will create the file `dance-800.ndjson` which you can use in the player.
 
 ## Limitations
 
-* Some features are still under construction (like tracks and autosize). 
-* If the connection is slow, there is currently no "Loading..." message.
-* Javascript minifier (inside gulpfile.js) cannot handle private fields in ES6+
+* Some features are still under construction: see [issues](https://github.com/lepe/ndjson-player/issues). 
+
+## Contributing
+
+Fork this project and submit your "pull requests". If you have any issue, contact me.
 
 ## Credits
 

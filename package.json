@@ -23,6 +23,9 @@
     "url": "https://github.com/lepe/ndjson-player/issues"
   },
   "homepage": "https://github.com/lepe/ndjson-player",
+  "files" : [
+    "dist/*"
+  ],
   "dependencies": {
     "m2d2": "^1.3.3"
   },
