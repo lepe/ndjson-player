@@ -1,6 +1,6 @@
 {
   "name": "ndjson-player",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Video player which uses NDJSON as source and metadata.",
   "main": "src/ndjson-player.src.js",
   "scripts": {
@@ -24,7 +24,7 @@
   },
   "homepage": "https://github.com/lepe/ndjson-player",
   "dependencies": {
-    "m2d2": "^1.3.2"
+    "m2d2": "^1.3.3"
   },
   "devDependencies": {
     "@babel/core": "^7.9.0",

@@ -12,10 +12,10 @@ class NDJPlayer {
     // Events
     onAction;   // Callback when user performs an action (eg. play, stop...)
 
-    constructor(src, element, options, onload, onrender, onaction) {
+    constructor(src, element, options, onaction) {
         const _this = this;
         this.options = Object.assign({
-            controls : false,
+            controls: false,
             play: true,
             //pause: true, : pause will be true if play is true
             stop: false,
@@ -29,22 +29,33 @@ class NDJPlayer {
             resize: true //set it to false to disable autoSize function
         }, options || {});
 
-        this.onAction = onaction || function () {}
+        this.onAction = onaction || function () {
+        }
         // Create UI
         this._create(element);
         // Initialize player
-        this.ndjp = new NdJsonPlayer(src, element, options, onload
-         , function (frame) {
-            _this._onUpdate(frame);
-            if (onrender !== undefined) {
-                onrender(frame);
-            }
-        }, function () {
-            _this.stop()
-        }, function (e) {
-            debugger;
-            //Display error in player
-        });
+        this.ndjp = new NdJsonPlayer(src, element, options
+            , function (player) {
+                _this._adjustSize()
+                if (_this.options.onstart !== undefined) {
+                    _this.options.onstart(player);
+                }
+            },
+            function (player) {
+                if(_this.options.onload !== undefined) {
+                    _this.options.onload(player);
+                }
+            }, function (frame) {
+                _this._onUpdate(frame);
+                if (_this.options.onrender !== undefined) {
+                    _this.options.onrender(frame);
+                }
+            }, function (player) {
+                //player.stop()
+            }, function (e) {
+                debugger;
+                //Display error in player
+            });
     }
 
     /**
@@ -53,10 +64,15 @@ class NDJPlayer {
      */
     _onUpdate(frame) {
         const _this = this;
-        _this.ui.frames.text = (_this.ndjp.currentFrame() + 1) + "/" + _this.ndjp.totalFrames()
-        _this.ui.lapse.text = frame.t !== undefined ? frame.t + (_this.ndjp._totTime > 0 ? "/" + _this.ndjp.totalTime() : ""): _this._fmtTime(_this.ndjp.totalTime());
-        _this.ui.progress.value = ((_this.ndjp.currentFrame() + 1) / (_this.ndjp.totalFrames())) * 100;
-        _this._adjustSize();
+        if(_this.ui.frames !== undefined) {
+            _this.ui.frames.text = (_this.ndjp.currentFrame() + 1) + "/" + _this.ndjp.totalFrames()
+        }
+        if(_this.ui.lapse !== undefined) {
+            _this.ui.lapse.text = frame.t !== undefined ? frame.t + (_this.ndjp._totTime > 0 ? "/" + _this.ndjp.totalTime() : "") : _this._fmtTime(_this.ndjp.totalTime());
+        }
+        if(_this.ui.progress !== undefined) {
+            _this.ui.progress.value = ((_this.ndjp.currentFrame() + 1) / (_this.ndjp.totalFrames())) * 100;
+        }
     }
 
     /**
@@ -64,15 +80,14 @@ class NDJPlayer {
      * @private
      */
     _adjustSize() {
-        if(this.options.resize) {
+        if (this.options.resize) {
             let player = this.ndjp.player
             let parent = this.ndjp.player.parentElement
-            if(player.clientHeight > parent.clientHeight) {
-                //TODO: sometimes it is not showing correctly
+            if (player.clientHeight > parent.clientHeight) {
                 let ratioW = this.ndjp.canvas.height / this.ndjp.canvas.width;
-                let ratioH = this.ndjp.canvas.width / this.ndjp.canvas.height;
-                this.ndjp.canvas.height = parent.clientHeight - player.querySelector(".controls").clientHeight;
-                this.ndjp.canvas.width  = parent.clientWidth * (ratioW < 1 ? ratioW : ratioH);
+                let ratioH = 1 / ratioW;
+                this.ndjp.canvas.height = parent.clientHeight - (this.options.controls ? player.querySelector(".controls").clientHeight : 0);
+                this.ndjp.canvas.width = parent.clientWidth * (ratioW < 1 ? ratioW : ratioH);
             }
         }
     }
@@ -84,93 +99,15 @@ class NDJPlayer {
      */
     _create(element) {
         const _this = this;
-        _this.ui = m2d2(element, {
-            html : _this._getUI(element),
-            play: {
-                show: _this.options.play,
-                title: "Play",
-                text: "▶️",
-                href: "#",
-                onclick: function () {
-                    _this.onAction("play", _this.ndjp, _this);
-                    _this.ndjp.play();
-                    _this.ui.play.show = false;
-                    _this.ui.pause.show = true;
-                    return false;
-                }
-            },
-            pause: {
-                show: _this.options.pause,
-                title: "Pause",
-                text: "⏸️",
-                href: "#",
-                onclick: function () {
-                    _this.onAction("pause", _this.ndjp, _this);
-                    _this.ndjp.pause();
-                    _this.ui.play.show = true;
-                    _this.ui.pause.show = false;
-                    return false;
-                }
-            },
-            stop: {
-                show: _this.options.stop,
-                title: "Stop",
-                text: "⏹️",
-                href: "#",
-                onclick: function () {
-                    _this.onAction("stop", _this.ndjp, _this);
-                    _this.ndjp.stop();
-                    return false;
-                }
-            },
-            lapse: {
-                show: _this.options.lapse,
-                title: "Time elapsed / Time Total",
-                text: "0:00"
-            },
-            frames: {
-                show: _this.options.frames,
-                title: "Current Frame / Total Frames",
-                text: "0"
-            },
-            progress: {
-                show: _this.options.progress,
-                value: 0,
-                max: 100,
-                onmousemove: function (e) {
-                    let position = ~~(((e.offsetX) / this.offsetWidth) * 100);
-                    let frame = _this.ndjp.frameAt(_this.ndjp.indexAt(position));
-                    if(frame) {
-                        _this.ui.thumb.show = true;
-                        _this.ui.thumb.img.src = _this.ndjp.frameBase() + (frame.th || frame.f);
-                        if(frame.tc !== undefined) {
-                            _this.ui.thumb.caption = frame.tc;
-                        }
-                        let thumb = _this.ui.thumb._node;
-                        thumb.style.left = (this.offsetLeft + e.offsetX - (thumb.clientWidth / 2)) + "px"
-                    } else {
-                        _this.ui.thumb.show = false;
-                    }
-                },
-                onmouseleave: function() {
-                    _this.ui.thumb.show = false;
-                },
-                onclick: function(e) {
-                    let position = ~~(((e.offsetX) / this.offsetWidth) * 100);
-                    let index = _this.ndjp.indexAt(position);
-                    _this.ndjp.step(index);
-                    _this.onAction("progress", _this.ndjp, _this);
-                }
-            },
-            //sizes : ["SD", "HD", "4K"],
-            thumb : {
-                show : false,
-                img : {
+        _this.ui = m2d2(element, Object.assign(_this._getUI(element), {
+            thumb: {
+                show: false,
+                img: {
                     src: ""
                 },
-                caption : ""
-            },
-        });
+                caption: ""
+            }
+        }));
     }
 
     /**
@@ -192,31 +129,126 @@ class NDJPlayer {
      * @private
      */
     _getUI(element) {
-        let html = "";
-        switch(this.options.controls) {
-            case "":
+        const _this = this;
+        let ui = { html : (element.innerHTML || "") };
+        const play = {
+            play: {
+                show: _this.options.play,
+                title: "Play",
+                text: "▶️",
+                href: "#",
+                onclick: function () {
+                    _this.onAction("play", _this.ndjp, _this);
+                    _this.ndjp.play();
+                    _this.ui.play.show = false;
+                    _this.ui.pause.show = true;
+                    return false;
+                }
+            }
+        }
+        const pause = {
+            pause: {
+                show: _this.options.pause,
+                title: "Pause",
+                text: "⏸️",
+                href: "#",
+                onclick: function () {
+                    _this.onAction("pause", _this.ndjp, _this);
+                    _this.ndjp.pause();
+                    _this.ui.play.show = true;
+                    _this.ui.pause.show = false;
+                    return false;
+                }
+            }
+        }
+        const stop = {
+            stop: {
+                title: "Stop",
+                text: "⏹️",
+                href: "#",
+                onclick: function () {
+                    _this.onAction("stop", _this.ndjp, _this);
+                    _this.ndjp.stop();
+                    return false;
+                }
+            }
+        }
+        const lapse = {
+            lapse: {
+                show: _this.options.lapse,
+                title: "Time elapsed / Time Total",
+                text: "0:00"
+            }
+        }
+        const frames = {
+            frames: {
+                show: _this.options.frames,
+                title: "Current Frame / Total Frames",
+                text: "0"
+            }
+        }
+        const progress = {
+            progress: {
+                show: _this.options.progress,
+                value: 0,
+                max: 100,
+                onmousemove: function (e) {
+                    let position = ~~(((e.offsetX) / this.offsetWidth) * 100);
+                    let frame = _this.ndjp.frameAt(_this.ndjp.indexAt(position));
+                    if (frame) {
+                        _this.ui.thumb.show = true;
+                        _this.ui.thumb.img.src = _this.ndjp.frameBase() + (frame.th || frame.f);
+                        if (frame.tc !== undefined) {
+                            _this.ui.thumb.caption = frame.tc;
+                        }
+                        let thumb = _this.ui.thumb._node;
+                        thumb.style.left = (this.offsetLeft + e.offsetX - (thumb.clientWidth / 2)) + "px"
+                    } else {
+                        _this.ui.thumb.show = false;
+                    }
+                },
+                onmouseleave: function () {
+                    _this.ui.thumb.show = false;
+                },
+                onclick: function (e) {
+                    let position = ~~(((e.offsetX) / this.offsetWidth) * 100);
+                    let index = _this.ndjp.indexAt(position);
+                    _this.ndjp.step(index);
+                    _this.onAction("progress", _this.ndjp, _this);
+                }
+            }
+        }
+        //sizes : ["SD", "HD", "4K"],
+
+        switch (this.options.controls) {
             case "basic":
             case true:
-                html = this._getBasicUI(); break;
+                ui.html = this._getBasicUI();
+                ui = Object.assign(ui, play, pause, lapse, progress);
+                break;
             case "common":
-                html = this._getCommonUI(); break;
+                ui.html = this._getCommonUI();
+                ui = Object.assign(ui, play, pause, lapse, progress, frames);
+                break;
             case "full":
-                html = this._getFullUI(); break;
+                ui.html = this._getFullUI();
+                ui = Object.assign(ui, play, pause, lapse, progress, frames, stop);
+                break;
         }
-        if(typeof this.options.controls === 'object') {
-
+        if (typeof this.options.controls === 'object') {
+            //TODO: what to show and what not to show
         }
         let root = element instanceof Node ? element : document.querySelector(element);
-        if(root) {
+        if (root) {
             let canvas = root.querySelector("canvas");
             if (!canvas) {
-                html = "<canvas></canvas>" + html;
+                ui.html = "<canvas></canvas>" + ui.html;
             }
         } else {
             console.log("Root element: " + element + " was not found in document");
-            html = "<canvas></canvas>" + html;
+            ui.html = "<canvas></canvas>" + ui.html;
         }
-        return (element.innerHTML || "") + html;
+        return ui;
     }
 
     /**

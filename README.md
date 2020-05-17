@@ -62,9 +62,18 @@ Files are located inside the [dist directory](https://github.com/lepe/ndjson-pla
 <video-nd src="/video/demo.ndjson" controls="full"></video-nd>
 ```
 
-### Using onrender() event:
-You can add the `onrender` event to your `<video-nd>` element to process frames.
-For example, you may:
+### Events
+You can add the events to your `<video-nd>` element to process frames.
+
+#### onrender(frame, player, ui, canvas, ctx) event:
+In which:
+* frame  : is the JSON object containing the metadata and the image information
+* player : NdJsonPlayer instance. You can perform actions in it (see below).
+* ui     : UI class which wraps the canvas
+* canvas : `<canvas>` element
+* ctx    : canvas 2D context
+
+Example applications:
 
 - Add captions into the canvas  (see Example)
 - Add animations or shapes intro the video  in relation to the frames.
@@ -80,11 +89,24 @@ document.querySelector("video-nd").onrender = function(frame, player, canvas, ct
     ctx.fillText(new Date(Date.now()).toLocaleTimeString(), 10, 30);
 }
 ```
+
+#### onaction(action, player, ui) event
 In which:
-* frame  : is the JSON object containing the metadata and the image information
-* player : NdJsonPlayer instance. You can perform actions in it (see below).
-* canvas : `<canvas>` element
-* ctx    : canvas 2D context
+* action : is a string describing it, like: "play", "pause", "stop", "progress"
+
+Useful to execute code on some user action.
+
+#### onload(player) event
+
+Executed when the player is done downloading the source video. 
+
+#### onstart(player) event
+
+Executed when the first image is displayed. Useful to adjust the size of the video.
+
+#### onfinish(player) event
+
+Executed when we reach the end of the video (if playing backwards, it will be triggered on the beginning of the video).
 
 ### Advanced HTML example:
 ```html

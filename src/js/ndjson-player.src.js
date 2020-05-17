@@ -21,8 +21,10 @@ class NdJsonPlayer {
     playing = false;   // Status
     loaded  = false;   // If a frame has been loaded or not
     backwards = false; // If playing backwards
+    started = false; // If the player already start playing at least 1 frame
 
     // Events
+    onStart;    // Callback when we processed first image
     onLoad;     // Callback when data is completed loading
     onRender;   // Callback to return metadata when a frame is rendered
     onFinish;   // Callback when video reaches the last frame
@@ -50,20 +52,22 @@ class NdJsonPlayer {
      * new NdJsonPlayer("/videos/test.ndjson")
      *
      * @param src     .ndjson file (see format)
-     * @param element HTML element (must be a canvas). If not set, it will use '<canvas>'
-     * @param options Object replacing default values
-     * @param onload callback when data has been completely loaded
-     * @param onrender Callback when a frame is updated
-     * @param onfinish Callback when the video is finished
-     * @param onerror Callback when there is an error to raise
+     * @param element : Node, HTML element (must be a canvas). If not set, it will use '<canvas>'
+     * @param options : Object replacing default values
+     * @param onstart : callback on first image displayed
+     * @param onload : callback when data has been completely loaded
+     * @param onrender : callback when a frame is updated
+     * @param onfinish : callback when the video is finished
+     * @param onerror : callback when there is an error to raise
      */
-    constructor(src, element, options, onload, onrender, onfinish, onerror) {
+    constructor(src, element, options, onstart, onload, onrender, onfinish, onerror) {
         const _this = this;
         _this.src = src;
         if (!window.requestAnimationFrame) {
             window.requestAnimationFrame = window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame;
         }
         // Add events:
+        _this.onStart    = onstart  || function () {}
         _this.onLoad     = onload   || function () {}
         _this.onRender   = onrender || function () {}
         _this.onFinish   = onfinish || function () {}
@@ -156,6 +160,10 @@ class NdJsonPlayer {
             } else {
                 _this.onRender(item);
             }
+            if(!_this.started) {
+                _this.onStart(_this);
+                _this.started = true;
+            }
         });
     }
 
@@ -178,6 +186,7 @@ class NdJsonPlayer {
                 .then(function process ({ value, done }) {
                     if (done) {
                         callback(JSON.parse(buffer));
+                        // We are done loading all frames
                         _this.onLoad(_this);
                         return;
                     }
@@ -249,6 +258,7 @@ class NdJsonPlayer {
             } else {
                 this.frame = 0;
                 this.pause();
+                this.onFinish(this); //Backwards playing
             }
         }
         if(this.frame > this._frames.length - 1) {
@@ -257,6 +267,7 @@ class NdJsonPlayer {
             } else {
                 this.frame = this._frames.length - 1;
                 this.pause();
+                this.onFinish(this);
             }
         }
     }
@@ -349,7 +360,7 @@ class NdJsonPlayer {
 
     /**
      * Return a frame in position
-     * @param position
+     * @param index : position
      */
     frameAt(index) {
         const _this = this;

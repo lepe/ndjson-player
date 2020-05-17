@@ -11,15 +11,23 @@ dir=${1%/}
 thDir=${2%/}
 totalFrames=$(ls -l "$dir"/*.jpg | wc -l);
 fps=24
-echo "{\"fb\":\"video/$dir/\", \"tf\": $totalFrames, \"fps\": $fps }" > $dir.ndjson
-for frame in $dir/*.jpg
+first=$(ls "$dir"/*.jpg | head -n 1);
+if [[ $(identify --version) ]]; then
+  width=$(identify -format '%w' "$first")
+  height=$(identify -format '%h' "$first")
+else
+  width=$(file "$first" | grep -Eo "[0-9]{3,5}+x[0-9]{3,5}+" | awk -Fx '{print $1}')
+  height=$(file "$first" | grep -Eo "[0-9]{3,5}+x[0-9]{3,5}+" | awk -Fx '{print $2}')
+fi
+echo "{\"fb\":\"video/$dir/\", \"tf\": $totalFrames, \"fps\": $fps, \"w\":\"$width\", \"h\":\"$height\" }" > "$dir".ndjson
+for frame in "$dir"/*.jpg
 do
-    fileBase=$(basename $frame);
-    modDate=$(stat -c %y $frame);
+    fileBase=$(basename "$frame");
+    modDate=$(stat -c %y "$frame");
     if [[ $thDir != "" ]]; then
       thb="$thDir/$fileBase";
-      echo "{\"f\":\"$fileBase\", \"th\":\"$thb\" }" >> $dir.ndjson
+      echo "{\"f\":\"$fileBase\", \"th\":\"$thb\" }" >> "$dir".ndjson
     else
-      echo "{\"f\":\"$fileBase\", \"t\":\"$modDate\"}" >> $dir.ndjson
+      echo "{\"f\":\"$fileBase\", \"t\":\"$modDate\"}" >> "$dir".ndjson
     fi
 done

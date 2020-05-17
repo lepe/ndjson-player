@@ -1,5 +1,5 @@
 "use strict";class Utils{static htmlNode(t){const e=Utils.newNode("template");return e.innerHTML=t.trim(),e.content.firstChild}static newNode(t){return document.createElement(t)}static node(t,e){return void 0===e&&(e=document),t instanceof Node?t:e.querySelector(t)}static isNumeric(t){return!isNaN(parseFloat(t))&&isFinite(t)}static isSelectorID(t){return 0===(t+"").trim().indexOf("#")}static isPlainObject(t){return Utils.isObject(t)&&!Utils.isArray(t)}static isObject(t){return"object"==typeof t}static isArray(t){return Array.isArray(t)}static isFunction(t){return"function"==typeof t}static isHtml(t){return-1!==(t+"").trim().indexOf("<")}static isEmpty(t){return void 0===t||Utils.isObject(t)&&0===Object.keys(t).length||""===t}}
-"use strict";class M2D2{root;constructor(e){this.root=e.root||"body",this.template=e.template||{},this.data=e.data||[],this._init()}static _ext={};static extend(e){Object.assign(M2D2._ext,e)}update(e,t,i){const o=this;if(o._rendered){const n=function(e){let n;if(void 0!==e._node)if(Utils.isArray(e))if(void 0===i)void 0!==e[t]._node&&e[t]._node.remove();else{let t;const i=[];for(t in e._node.childNodes)n=e._node.childNodes[t],n&&void 0!==n.tagName&&"TEMPLATE"!==n.tagName&&i.push(n);for(t in i)n=i[t],n.remove();o._doRender(e._node,e)}else{const n={};n[t]=i.value,"items"!==t||void 0===e.template||Utils.isEmpty(e.template)||(n.template=e.template),o._doRender(e._node,n)}else o._doRender(o.$root,e)};void 0===t&&Utils.isFunction(o._func)?o._doFunc(o._func,e,(function(e){n(e)})):n(e)}}get(){return this._defineProp(this._data,"m2d2",this),this._setProxy(),this._data}clear(){const e=this;e._rendered&&(e.$root.innerHTML=e._cache)}$root=null;_rendered=!1;_updater=!0;_cache=null;_data=null;_func=null;_htmlGenTags=["a","abbr","acronym","address","area","article","aside","audio","b","bdi","bdo","big","blockquote","body","br","button","canvas","caption","cite","code","col","colgroup","datalist","dd","del","details","dfn","div","dl","dt","em","embed","fieldset","figcaption","figure","footer","form","frame","frameset","h1","h2","h3","h4","h5","h6","head","header","hgroup","hr","html","i","img","input","ins","kbd","label","legend","li","map","mark","menu","meter","nav","ol","optgroup","option","output","p","pre","progress","q","rp","rt","ruby","samp","section","select","small","span","strong","sub","summary","sup","table","tbody","td","textarea","tfoot","th","thead","tr","tt","ul","var"];_init(){const e=this;if(Utils.isFunction(e._data)){e._func=e._data;let t=e._doFunc(e._func,e.param);t&&(Utils.isArray(t)&&(t={items:t}),e._data=t,e._rendered||e._onReady())}else Utils.isObject(e._data)||(e._data={text:e._data}),e._onReady()}_render(){const e=this;if(void 0===e._data)return console.log("data is missing in m2d2 object with root: "+e.root),!1;e._doRender(e.$root,e._data),e._rendered=!0}_onReady(){const e=this;e.$root=Utils.node(e.root),e.$root?(e._cache=e.$root.innerHTML,e._render()):console.log("Warning: Node was not found: "+e.root)}_doFunc(e,t,i){const o=this;let n=e((function(e,t,n){let s,l=void 0!==o._data._proxy;if(void 0!==n&&Utils.isNumeric(n)?s=n:void 0!==t&&Utils.isNumeric(t)&&(s=t),Utils.isArray(e)){const i={};void 0===t||Utils.isNumeric(t)?void 0!==o.template&&(i.template=o.template):i.template=t,i.items=e,e=i}if(Utils.isPlainObject(e)){o._updater=!1,l||(o._data={});for(let t in e)o._data[t]=e[t];o._updater=!0}if(void 0===s&&o.interval>0&&(s=o.interval),s>0){const e=function(){o._func((function(e){o._doRender(o.$root,e)}))};o.interval=setInterval(e,s)}o._onReady(),void 0!==i&&i(e)}),t)||{};return Utils.isFunction(o._data)||(n=o._data),Utils.isArray(n)&&(n={items:n}),Utils.isObject(n)||console.log("Undefined type of 'data'. For automatic detection do not set any 'return' in the data's function. Or explicitly return '[]' for arrays or '{}' for objects."),n}_setProxy(){const e=this;void 0===e._data._proxy&&(Utils.isPlainObject(e._data)||Utils.isArray(e._data))&&(e._data=e._proxy(e._data,(function(t,i,o){"m2d2"!==i&&"_"!==i[0]&&e._updater&&e.update(t,i,o)})))}_doRender(e,t,i){void 0===i&&(i=!1),t&&void 0!==t.oninit&&Utils.isFunction(t.oninit)&&(t.oninit(),delete t.oninit),Utils.isArray(t)&&(t={items:t}),this._setProxy(),this._setValues(e,t,i),t&&void 0!==t.onrender&&Utils.isFunction(t.onrender)&&(t.onrender(),delete t.onrender)}_doArray(e,t,i,o){const n=this;void 0===o&&(o=!1),n._setNode(e,i);let s=n._getTemplate(e,t);for(let l=0;l<(i.length||Object.keys(i).length);l++){let a=i[l]||Object.values(i)[l];if(void 0!==a._node&&(a._node=void 0),!s)if("SELECT"===e.tagName||"DATALIST"===e.tagName)s="<option>","string"==typeof a&&(a={text:a,value:a});else if("UL"===e.tagName||"OL"===e.tagName)s="<li>";else if("NAV"===e.tagName)s="<a>";else{if(!Utils.isPlainObject(a))return console.log("Warning: No template found for object:"),console.log(e),void console.log(t);if(1!==Object.keys(a).length)return console.log("Warning: Multiple keys in data without template is not supported yet. Object:"),void console.log(t);if(Utils.isSelectorID(a)){const e=document.querySelector(a);if(!e)return console.log("Warning: ID selector for template not found: "+a+" . Object:"),void console.log(t);s=e.outerHTML}else s=Utils.newNode(Object.keys(a)[0]).outerHTML}const r=Utils.htmlNode(s);r.setAttribute("data-id",l),e.append(r),n._setValues(r,a,o)}}_getTemplate(e,t){const i=this;if(void 0!==t._template&&""!==t._template)return t._template;{let o;if(void 0!==t.template?Utils.isPlainObject(t.template)?(o=Utils.newNode("div"),i._setValues(o,t.template,!0)):o=Utils.isSelectorID(t.template)?document.querySelector(t.template):Utils.isHtml(t.template)?Utils.htmlNode("<template>"+t.template+"</template>"):Utils.htmlNode("<template>"+Utils.newNode(t.template).outerHTML+"</template>"):o=Utils.node("template",e),o){const e=o.innerHTML.trim();return i._defineProp(t,"_template",e),e}return e.innerHTML.trim()}}_setValues(e,t,i){const o=this;if(void 0===i&&(i=!1),Utils.isArray(t)&&(t={items:t}),Utils.isPlainObject(t)){o._setNode(e,t),t.hasOwnProperty("html")&&null!==t.html&&o._setValue(e,"html",t.html),t.hasOwnProperty("template")?(e.append(Utils.htmlNode("<template>"+o._getTemplate(e,t)+"</template>")),t.hasOwnProperty("items")||(t.items=[])):t.hasOwnProperty("items")&&console.log("Warning: 'items' specified but no template found.");for(let n in t){const s=t[n];if("html"===n||"template"===n||n.startsWith("_"));else if("items"===n)o._doArray(e,t,s,i);else if("items"!==n||Utils.isArray(s)||(console.log("Warning: 'items' specified but value is not and array in element: "),console.log(e),console.log("Passed values are: "),console.log(s)),void 0!==M2D2._ext[n]&&Utils.isFunction(M2D2._ext[n])){const t=M2D2._ext[n](s,e);t&&o._setValues(e,t,i)}else if("#"===n[0])o._doRender(Utils.node(n),s,i);else if(Utils.isArray(s)&&2===s.length&&void 0!==s[0]._node){let t=s[0]._update||null;void 0===e._orig_update&&(e._orig_update=t,s[0]._update=function(){o._data[n]=s[0][s[1]],null!==e._orig_update&&e._orig_update()}),o._setValue(e,n,s[0][s[1]])}else if("text"===n&&null!==s)o._setValue(e,n,s);else if("dataset"===n&&Utils.isPlainObject(s))for(let t in s)e.setAttribute("data-"+t,s[t]);else if("style"===n)if(Utils.isPlainObject(s))for(const t in s)e.style[t]=s[t];else e.style=s;else if(n.startsWith("on")&&Utils.isFunction(s))i?(void 0===m2d2.f&&(m2d2.f=[]),m2d2.f.push(s),e.setAttribute(n,"m2d2.f["+(m2d2.f.length-1)+"](event)")):e[n]=s;else if(s instanceof Date)o._setValue(e,n,s);else if(!o._hasAttrOrProp(e,n)||Utils.isObject(s)||"id"===n&&Utils.isNumeric(s)){let t=Utils.node(n,e);if(!t&&(t=Utils.node("#"+n,e),t||(t=Utils.node("."+n,e)),!t)){const t=function(t,i,n){const s=Utils.newNode(t);e.append(s),o._doRender(s,i,n)};if(-1!==o._htmlGenTags.indexOf(n)){t(n,s,i);continue}if(s&&Utils.isObject(s)&&void 0!==s.tagName){let e=s.tagName;delete s.tagName,t(e,s,i);continue}}t?o._doRender(t,s,i):console.log("No child or attribute found for: "+n+" in element: "+e.localName)}else{try{e[n]=s}catch(t){console.log("Unable to set property ["+n+"] in element: "+e.localName+". Read-only?")}if("boolean"!=typeof e[n]&&o._hasAttr(e,n)&&e.setAttribute(n,s),"value"===n){let t=e.onchange||null;void 0===e._orig_change&&(e._orig_change=t,e.onchange=function(){this.setAttribute(n,this.value),null!==this._orig_change&&this._orig_change()})}void 0===e._mutable&&(new MutationObserver((function(e){const t=e[0].target;void 0!==t._m2d2?e.forEach((function(e){const n=e.attributeName;let s=t._m2d2[n];const l="boolean"==typeof s?t[n]:t.getAttribute(n);if(void 0!==s&&s!=l){t._m2d2[n]=l;let e={};e[n]=l,o._setValues(t,e,i),void 0!==t._m2d2._update&&t._m2d2._update()}})):console.log("BUG: Unable to find m2d2 reference in node.")})).observe(e,{attributes:!0}),e._mutable=!0)}}}else o._setValue(e,null,t)}_setValue(e,t,i){const o=this;let n=!1;if(null==t?void 0===i||null==i?(console.log("Value was undefined in element :"),console.log(e)):Utils.isPlainObject(i)&&void 0!==i.text?i=i.text:!Utils.isNumeric(i)&&Utils.isHtml(i)&&(n=!0):"html"===t&&(n=!0),n)e.innerHTML=i;else if("value"===t||null==t&&o._hasProp(e,"value")&&"LI"!==e.tagName)o._hasProp(e,"checked")?!0===i||"true"===i||1===i?e.setAttribute("checked",!0):!1===i||"false"===i||0===i?e.setAttribute("checked",!1):e.value=i:i instanceof Date?e.valueAsDate=i:e.value=i;else if(e.childElementCount>0){for(let t in e.childNodes){const o=e.childNodes[t];if(3===o.nodeType)return void o.replaceWith(i)}e.innerHTML=e.innerHTML+i}else e.innerText=i}_hasAttrOrProp(e,t){return this._hasAttr(e,t)||this._hasProp(e,t)}_hasAttr(e,t){let i=!1;if(e&&!Utils.isNumeric(t))switch(t){case"checked":i=void 0!==e.type&&("radio"===e.type||"checkbox"===e.type);break;default:i=e.hasAttribute(t)}return i}_hasProp(e,t){let i=!1;return e&&!Utils.isNumeric(t)&&(i=void 0!==e[t]&&!e.hasAttribute(t)),i}_defineProp(e,t,i){Utils.isObject(e)&&void 0===e[t]&&(Object.defineProperty(e,t,{enumerable:!1,writable:!0}),e[t]=i)}_setNode(e,t){this._defineProp(t,"_node",e),this._defineProp(e,"_m2d2",t)}_proxy(e,t){this._defineProp(e,"_proxy",!0);const i={get:function(t,o,n){if("m2d2"===o||"_"===o[0])return t[o];{const s=Reflect.get(t,o,n),l=Object.getOwnPropertyDescriptor(t,o);if(l&&!l.writable&&!l.configurable)return s;try{return Utils.isArray(e)&&!Utils.isNumeric(o)?t[o]:new Proxy(t[o],i)}catch(e){return s}}},defineProperty:function(e,i,o){return t(e,i,o),Reflect.defineProperty(e,i,o)},deleteProperty:function(e,i){return t(e,i),Reflect.deleteProperty(e,i)},set:function(e,i,o){return e[i]=o,t(e,i,{value:o}),void 0!==e._update&&e._update(),!0}};return new Proxy(e,i)}set data(e){this._data=e,this.update(this._data)}get data(){return this._data}}const m2d2=function(e,t,i){const o={},n=typeof e;switch(n){case"string":if(void 0===t)return o.data=e,null;o.root=e,Utils.isArray(t)&&(t={items:t}),o.data=t,o.template=i;break;case"object":e instanceof Node&&(o.root=e,e=t);case"function":Utils.isArray(e)&&(t={items:e}),o.data=e,o.template=i;break;default:return console.log("First argument passed to m2d2, with value: ("+e+") is of unknown type: "+n),null}return new M2D2(o).get()};
+"use strict";class M2D2{root;constructor(e){this.root=e.root||"body",this.template=e.template||{},this.data=e.data||[],this._init()}static _ext={};static extend(e){Object.assign(M2D2._ext,e)}update(e,t,i){const o=this;if(o._rendered){const n=function(e){let n;if(void 0!==e._node)if(Utils.isArray(e))if(void 0===i)void 0!==e[t]._node&&e[t]._node.remove();else{let t;const i=[];for(t in e._node.childNodes)n=e._node.childNodes[t],n&&void 0!==n.tagName&&"TEMPLATE"!==n.tagName&&i.push(n);for(t in i)n=i[t],n.remove();o._doRender(e._node,e)}else{const n={};n[t]=i.value,"items"!==t||void 0===e.template||Utils.isEmpty(e.template)||(n.template=e.template),o._doRender(e._node,n)}else o._doRender(o.$root,e)};void 0===t&&Utils.isFunction(o._func)?o._doFunc(o._func,e,(function(e){n(e)})):n(e)}}get(){return this._defineProp(this._data,"m2d2",this),this._setProxy(),this._data}clear(){const e=this;e._rendered&&(e.$root.innerHTML=e._cache)}$root=null;_rendered=!1;_updater=!0;_cache=null;_data=null;_func=null;_htmlGenTags=["a","abbr","acronym","address","area","article","aside","audio","b","bdi","bdo","big","blockquote","body","br","button","canvas","caption","cite","code","col","colgroup","datalist","dd","del","details","dfn","div","dl","dt","em","embed","fieldset","figcaption","figure","footer","form","frame","frameset","h1","h2","h3","h4","h5","h6","head","header","hgroup","hr","html","i","img","input","ins","kbd","label","legend","li","map","mark","menu","meter","nav","ol","optgroup","option","output","p","pre","progress","q","rp","rt","ruby","samp","section","select","small","span","strong","sub","summary","sup","table","tbody","td","textarea","tfoot","th","thead","tr","tt","ul","var"];_init(){const e=this;if(Utils.isFunction(e._data)){e._func=e._data;let t=e._doFunc(e._func,e.param);t&&(Utils.isArray(t)&&(t={items:t}),e._data=t,e._rendered||e._onReady())}else Utils.isObject(e._data)||(e._data={text:e._data}),e._onReady()}_render(){const e=this;if(void 0===e._data)return console.log("data is missing in m2d2 object with root: "+e.root),!1;e._doRender(e.$root,e._data),e._rendered=!0}_onReady(){const e=this;e.$root=Utils.node(e.root),e.$root?(e._cache=e.$root.innerHTML,e._render()):console.log("Warning: Node was not found: "+e.root)}_doFunc(e,t,i){const o=this;let n=e((function(e,t,n){let s,l=void 0!==o._data._proxy;if(void 0!==n&&Utils.isNumeric(n)?s=n:void 0!==t&&Utils.isNumeric(t)&&(s=t),Utils.isArray(e)){const i={};void 0===t||Utils.isNumeric(t)?void 0!==o.template&&(i.template=o.template):i.template=t,i.items=e,e=i}if(Utils.isPlainObject(e)){o._updater=!1,l||(o._data={});for(let t in e)o._data[t]=e[t];o._updater=!0}if(void 0===s&&o.interval>0&&(s=o.interval),s>0){const e=function(){o._func((function(e){o._doRender(o.$root,e)}))};o.interval=setInterval(e,s)}o._onReady(),void 0!==i&&i(e)}),t)||{};return Utils.isFunction(o._data)||(n=o._data),Utils.isArray(n)&&(n={items:n}),Utils.isObject(n)||console.log("Undefined type of 'data'. For automatic detection do not set any 'return' in the data's function. Or explicitly return '[]' for arrays or '{}' for objects."),n}_setProxy(){const e=this;void 0===e._data._proxy&&(Utils.isPlainObject(e._data)||Utils.isArray(e._data))&&(e._data=e._proxy(e._data,(function(t,i,o){"m2d2"!==i&&"_"!==i[0]&&e._updater&&e.update(t,i,o)})))}_doRender(e,t,i){void 0===i&&(i=!1),t&&void 0!==t.oninit&&Utils.isFunction(t.oninit)&&(t.oninit(),delete t.oninit),Utils.isArray(t)&&(t={items:t}),this._setProxy(),this._setValues(e,t,i),t&&void 0!==t.onrender&&Utils.isFunction(t.onrender)&&(t.onrender(),delete t.onrender)}_doArray(e,t,i,o){const n=this;void 0===o&&(o=!1),n._setNode(e,i);let s=n._getTemplate(e,t);for(let l=0;l<(i.length||Object.keys(i).length);l++){let a=i[l]||Object.values(i)[l];if(void 0!==a._node&&(a._node=void 0),!s)if("SELECT"===e.tagName||"DATALIST"===e.tagName)s="<option>","string"==typeof a&&(a={text:a,value:a});else if("UL"===e.tagName||"OL"===e.tagName)s="<li>";else if("NAV"===e.tagName)s="<a>";else{if(!Utils.isPlainObject(a))return console.log("Warning: No template found for object:"),console.log(e),void console.log(t);if(1!==Object.keys(a).length)return console.log("Warning: Multiple keys in data without template is not supported yet. Object:"),void console.log(t);if(Utils.isSelectorID(a)){const e=document.querySelector(a);if(!e)return console.log("Warning: ID selector for template not found: "+a+" . Object:"),void console.log(t);s=e.outerHTML}else s=Utils.newNode(Object.keys(a)[0]).outerHTML}const r=Utils.htmlNode(s);r.setAttribute("data-id",l),e.append(r),n._setValues(r,a,o)}}_getTemplate(e,t){const i=this;if(void 0!==t._template&&""!==t._template)return t._template;{let o;if(void 0!==t.template?Utils.isPlainObject(t.template)?(o=Utils.newNode("div"),i._setValues(o,t.template,!0)):o=Utils.isSelectorID(t.template)?document.querySelector(t.template):Utils.isHtml(t.template)?Utils.htmlNode("<template>"+t.template+"</template>"):Utils.htmlNode("<template>"+Utils.newNode(t.template).outerHTML+"</template>"):o=Utils.node("template",e),o){const e=o.innerHTML.trim();return i._defineProp(t,"_template",e),e}return e.innerHTML.trim()}}_setValues(e,t,i){const o=this;if(void 0===i&&(i=!1),Utils.isArray(t)&&(t={items:t}),Utils.isPlainObject(t)){o._setNode(e,t),t.hasOwnProperty("html")&&null!==t.html&&o._setValue(e,"html",t.html),t.hasOwnProperty("template")&&(e.append(Utils.htmlNode("<template>"+o._getTemplate(e,t)+"</template>")),t.hasOwnProperty("items")||(t.items=[]));for(let n in t){const s=t[n];if("html"===n||"template"===n||n.startsWith("_"));else if("items"===n)o._doArray(e,t,s,i);else if("items"!==n||Utils.isArray(s)||(console.log("Warning: 'items' specified but value is not and array in element: "),console.log(e),console.log("Passed values are: "),console.log(s)),void 0!==M2D2._ext[n]&&Utils.isFunction(M2D2._ext[n])){const t=M2D2._ext[n](s,e);t&&o._setValues(e,t,i)}else if("#"===n[0])o._doRender(Utils.node(n),s,i);else if(Utils.isArray(s)&&2===s.length&&"object"==typeof s[0]&&"string"==typeof s[1]){let t=s[0]._update||null;void 0===e._orig_update&&(e._orig_update=t,s[0]._update=function(){o._setValue(e,n,s[0][s[1]]),null!==e._orig_update&&e._orig_update()}),o._setValue(e,n,s[0][s[1]])}else if("text"===n&&null!==s)o._setValue(e,n,s);else if("dataset"===n&&Utils.isPlainObject(s))for(let t in s)e.setAttribute("data-"+t,s[t]);else if("style"===n)if(Utils.isPlainObject(s))for(const t in s)e.style[t]=s[t];else e.style=s;else if(n.startsWith("on")&&Utils.isFunction(s))i?(void 0===m2d2.f&&(m2d2.f=[]),m2d2.f.push(s),e.setAttribute(n,"m2d2.f["+(m2d2.f.length-1)+"](event)")):e[n]=s;else if(s instanceof Date)o._setValue(e,n,s);else if(!o._hasAttrOrProp(e,n)||Utils.isObject(s)||"id"===n&&Utils.isNumeric(s)){let t=Utils.node(n,e);if(!t&&(t=Utils.node("#"+n,e),t||(t=Utils.node("."+n,e)),!t)){const t=function(t,i,n){const s=Utils.newNode(t);e.append(s),o._doRender(s,i,n)};if(-1!==o._htmlGenTags.indexOf(n)){t(n,s,i);continue}if(s&&Utils.isObject(s)&&void 0!==s.tagName){let e=s.tagName;delete s.tagName,t(e,s,i);continue}}t?o._doRender(t,s,i):console.log("No child or attribute found for: "+n+" in element: "+e.localName)}else{try{e[n]=s}catch(t){console.log("Unable to set property ["+n+"] in element: "+e.localName+". Read-only?")}if("boolean"!=typeof e[n]&&o._hasAttr(e,n)&&e.setAttribute(n,s),"value"===n){let t=e.onchange||null;void 0===e._orig_change&&(e._orig_change=t,e.onchange=function(){this.setAttribute(n,this.value),null!==this._orig_change&&this._orig_change()})}void 0===e._mutable&&(new MutationObserver((function(e){const t=e[0].target;void 0!==t._m2d2?e.forEach((function(e){const n=e.attributeName;let s=t._m2d2[n];const l="boolean"==typeof s?t[n]:t.getAttribute(n);if(void 0!==s&&s!=l){t._m2d2[n]=l;let e={};e[n]=l,o._setValues(t,e,i),void 0!==t._m2d2._update&&t._m2d2._update()}})):console.log("BUG: Unable to find m2d2 reference in node.")})).observe(e,{attributes:!0}),e._mutable=!0)}}}else o._setValue(e,null,t)}_setValue(e,t,i){const o=this;let n=!1;if(null==t?void 0===i||null==i?(console.log("Value was undefined in element :"),console.log(e)):Utils.isPlainObject(i)&&void 0!==i.text?i=i.text:!Utils.isNumeric(i)&&Utils.isHtml(i)&&(n=!0):"html"===t&&(n=!0),n)e.innerHTML=i;else if("value"===t||null==t&&o._hasProp(e,"value")&&"LI"!==e.tagName)o._hasProp(e,"checked")?!0===i||"true"===i||1===i?e.setAttribute("checked",!0):!1===i||"false"===i||0===i?e.setAttribute("checked",!1):e.value=i:i instanceof Date?e.valueAsDate=i:e.value=i;else if(e.childElementCount>0){for(let t in e.childNodes){const o=e.childNodes[t];if(3===o.nodeType)return void o.replaceWith(i)}e.innerHTML=e.innerHTML+i}else e.innerText=i}_hasAttrOrProp(e,t){return this._hasAttr(e,t)||this._hasProp(e,t)}_hasAttr(e,t){let i=!1;if(e&&!Utils.isNumeric(t))switch(t){case"checked":i=void 0!==e.type&&("radio"===e.type||"checkbox"===e.type);break;default:i=e.hasAttribute(t)}return i}_hasProp(e,t){let i=!1;return e&&!Utils.isNumeric(t)&&(i=void 0!==e[t]&&!e.hasAttribute(t)),i}_defineProp(e,t,i){Utils.isObject(e)&&void 0===e[t]&&(Object.defineProperty(e,t,{enumerable:!1,writable:!0}),e[t]=i)}_setNode(e,t){this._defineProp(t,"_node",e),this._defineProp(e,"_m2d2",t)}_proxy(e,t){this._defineProp(e,"_proxy",!0);const i={get:function(t,o,n){if("m2d2"===o||"_"===o[0])return t[o];{const s=Reflect.get(t,o,n),l=Object.getOwnPropertyDescriptor(t,o);if(l&&!l.writable&&!l.configurable)return s;try{return Utils.isArray(e)&&!Utils.isNumeric(o)?t[o]:new Proxy(t[o],i)}catch(e){return s}}},defineProperty:function(e,i,o){return t(e,i,o),Reflect.defineProperty(e,i,o)},deleteProperty:function(e,i){return t(e,i),Reflect.deleteProperty(e,i)},set:function(e,i,o){return e[i]=o,t(e,i,{value:o}),void 0!==e._update&&e._update(),!0}};return new Proxy(e,i)}set data(e){this._data=e,this.update(this._data)}get data(){return this._data}}const m2d2=function(e,t,i){const o={},n=typeof e;switch(n){case"string":if(void 0===t)return o.data=e,null;o.root=e,Utils.isArray(t)&&(t={items:t}),o.data=t,o.template=i;break;case"object":e instanceof Node&&(o.root=e,e=t);case"function":Utils.isArray(e)&&(t={items:e}),o.data=e,o.template=i;break;default:return console.log("First argument passed to m2d2, with value: ("+e+") is of unknown type: "+n),null}return new M2D2(o).get()};
 M2D2.extend({show:function(e,t){const n=function(){return getComputedStyle(t,null).display};if(e){if("none"===n())if(t.dataset._m2d2_display)t.style.display=t.dataset._m2d2_display;else if(t.style.removeProperty("display"),"none"===n()){const e=function(){const e=document.getElementsByTagName("body")[0],n=document.createElement("template"),l=document.createElement(t.tagName);n.appendChild(l),e.appendChild(n);const s=getComputedStyle(l,null).display;return n.remove(),s}();t.style.display=t.dataset.display||("none"!==e?e:"block")}}else{const e="none"!==t.style.display?t.style.display:n();"none"!==e&&(t.dataset._m2d2_display=e),t.style.display="none"}}});
 M2D2.extend({color:function(s,t){t.style.color=s},bgcolor:function(s,t){t.style.backgroundColor=s},css:function(s,t){t.className=s},"-css":function(s,t){let l=Utils.isArray(s)?s:s.split(" ");for(let s in l)t.classList.remove(l[s])},"+css":function(s,t){let l=Utils.isArray(s)?s:s.split(" ");for(let s in l)t.classList.add(l[s])}});
 /**
@@ -104,8 +104,10 @@ class NdJsonPlayer {
     playing = false;   // Status
     loaded  = false;   // If a frame has been loaded or not
     backwards = false; // If playing backwards
+    started = false; // If the player already start playing at least 1 frame
 
     // Events
+    onStart;    // Callback when we processed first image
     onLoad;     // Callback when data is completed loading
     onRender;   // Callback to return metadata when a frame is rendered
     onFinish;   // Callback when video reaches the last frame
@@ -133,20 +135,22 @@ class NdJsonPlayer {
      * new NdJsonPlayer("/videos/test.ndjson")
      *
      * @param src     .ndjson file (see format)
-     * @param element HTML element (must be a canvas). If not set, it will use '<canvas>'
-     * @param options Object replacing default values
-     * @param onload callback when data has been completely loaded
-     * @param onrender Callback when a frame is updated
-     * @param onfinish Callback when the video is finished
-     * @param onerror Callback when there is an error to raise
+     * @param element : Node, HTML element (must be a canvas). If not set, it will use '<canvas>'
+     * @param options : Object replacing default values
+     * @param onstart : callback on first image displayed
+     * @param onload : callback when data has been completely loaded
+     * @param onrender : callback when a frame is updated
+     * @param onfinish : callback when the video is finished
+     * @param onerror : callback when there is an error to raise
      */
-    constructor(src, element, options, onload, onrender, onfinish, onerror) {
+    constructor(src, element, options, onstart, onload, onrender, onfinish, onerror) {
         const _this = this;
         _this.src = src;
         if (!window.requestAnimationFrame) {
             window.requestAnimationFrame = window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame;
         }
         // Add events:
+        _this.onStart    = onstart  || function () {}
         _this.onLoad     = onload   || function () {}
         _this.onRender   = onrender || function () {}
         _this.onFinish   = onfinish || function () {}
@@ -239,6 +243,10 @@ class NdJsonPlayer {
             } else {
                 _this.onRender(item);
             }
+            if(!_this.started) {
+                _this.onStart(_this);
+                _this.started = true;
+            }
         });
     }
 
@@ -261,6 +269,7 @@ class NdJsonPlayer {
                 .then(function process ({ value, done }) {
                     if (done) {
                         callback(JSON.parse(buffer));
+                        // We are done loading all frames
                         _this.onLoad(_this);
                         return;
                     }
@@ -332,6 +341,7 @@ class NdJsonPlayer {
             } else {
                 this.frame = 0;
                 this.pause();
+                this.onFinish(this); //Backwards playing
             }
         }
         if(this.frame > this._frames.length - 1) {
@@ -340,6 +350,7 @@ class NdJsonPlayer {
             } else {
                 this.frame = this._frames.length - 1;
                 this.pause();
+                this.onFinish(this);
             }
         }
     }
@@ -432,7 +443,7 @@ class NdJsonPlayer {
 
     /**
      * Return a frame in position
-     * @param position
+     * @param index : position
      */
     frameAt(index) {
         const _this = this;
@@ -578,10 +589,10 @@ class NDJPlayer {
     // Events
     onAction;   // Callback when user performs an action (eg. play, stop...)
 
-    constructor(src, element, options, onload, onrender, onaction) {
+    constructor(src, element, options, onaction) {
         const _this = this;
         this.options = Object.assign({
-            controls : false,
+            controls: false,
             play: true,
             //pause: true, : pause will be true if play is true
             stop: false,
@@ -595,22 +606,33 @@ class NDJPlayer {
             resize: true //set it to false to disable autoSize function
         }, options || {});
 
-        this.onAction = onaction || function () {}
+        this.onAction = onaction || function () {
+        }
         // Create UI
         this._create(element);
         // Initialize player
-        this.ndjp = new NdJsonPlayer(src, element, options, onload
-         , function (frame) {
-            _this._onUpdate(frame);
-            if (onrender !== undefined) {
-                onrender(frame);
-            }
-        }, function () {
-            _this.stop()
-        }, function (e) {
-            debugger;
-            //Display error in player
-        });
+        this.ndjp = new NdJsonPlayer(src, element, options
+            , function (player) {
+                _this._adjustSize()
+                if (_this.options.onstart !== undefined) {
+                    _this.options.onstart(player);
+                }
+            },
+            function (player) {
+                if(_this.options.onload !== undefined) {
+                    _this.options.onload(player);
+                }
+            }, function (frame) {
+                _this._onUpdate(frame);
+                if (_this.options.onrender !== undefined) {
+                    _this.options.onrender(frame);
+                }
+            }, function (player) {
+                //player.stop()
+            }, function (e) {
+                debugger;
+                //Display error in player
+            });
     }
 
     /**
@@ -619,10 +641,15 @@ class NDJPlayer {
      */
     _onUpdate(frame) {
         const _this = this;
-        _this.ui.frames.text = (_this.ndjp.currentFrame() + 1) + "/" + _this.ndjp.totalFrames()
-        _this.ui.lapse.text = frame.t !== undefined ? frame.t + (_this.ndjp._totTime > 0 ? "/" + _this.ndjp.totalTime() : ""): _this._fmtTime(_this.ndjp.totalTime());
-        _this.ui.progress.value = ((_this.ndjp.currentFrame() + 1) / (_this.ndjp.totalFrames())) * 100;
-        _this._adjustSize();
+        if(_this.ui.frames !== undefined) {
+            _this.ui.frames.text = (_this.ndjp.currentFrame() + 1) + "/" + _this.ndjp.totalFrames()
+        }
+        if(_this.ui.lapse !== undefined) {
+            _this.ui.lapse.text = frame.t !== undefined ? frame.t + (_this.ndjp._totTime > 0 ? "/" + _this.ndjp.totalTime() : "") : _this._fmtTime(_this.ndjp.totalTime());
+        }
+        if(_this.ui.progress !== undefined) {
+            _this.ui.progress.value = ((_this.ndjp.currentFrame() + 1) / (_this.ndjp.totalFrames())) * 100;
+        }
     }
 
     /**
@@ -630,15 +657,15 @@ class NDJPlayer {
      * @private
      */
     _adjustSize() {
-        if(this.options.resize) {
+        if (this.options.resize) {
             let player = this.ndjp.player
             let parent = this.ndjp.player.parentElement
-            if(player.clientHeight > parent.clientHeight) {
+            if (player.clientHeight > parent.clientHeight) {
                 //TODO: sometimes it is not showing correctly
                 let ratioW = this.ndjp.canvas.height / this.ndjp.canvas.width;
                 let ratioH = this.ndjp.canvas.width / this.ndjp.canvas.height;
-                this.ndjp.canvas.height = parent.clientHeight - player.querySelector(".controls").clientHeight;
-                this.ndjp.canvas.width  = parent.clientWidth * (ratioW < 1 ? ratioW : ratioH);
+                this.ndjp.canvas.height = parent.clientHeight - (this.options.controls ? player.querySelector(".controls").clientHeight : 0);
+                this.ndjp.canvas.width = parent.clientWidth * (ratioW < 1 ? ratioW : ratioH);
             }
         }
     }
@@ -650,93 +677,15 @@ class NDJPlayer {
      */
     _create(element) {
         const _this = this;
-        _this.ui = m2d2(element, {
-            html : _this._getUI(element),
-            play: {
-                show: _this.options.play,
-                title: "Play",
-                text: "▶️",
-                href: "#",
-                onclick: function () {
-                    _this.onAction("play", _this.ndjp, _this);
-                    _this.ndjp.play();
-                    _this.ui.play.show = false;
-                    _this.ui.pause.show = true;
-                    return false;
-                }
-            },
-            pause: {
-                show: _this.options.pause,
-                title: "Pause",
-                text: "⏸️",
-                href: "#",
-                onclick: function () {
-                    _this.onAction("pause", _this.ndjp, _this);
-                    _this.ndjp.pause();
-                    _this.ui.play.show = true;
-                    _this.ui.pause.show = false;
-                    return false;
-                }
-            },
-            stop: {
-                show: _this.options.stop,
-                title: "Stop",
-                text: "⏹️",
-                href: "#",
-                onclick: function () {
-                    _this.onAction("stop", _this.ndjp, _this);
-                    _this.ndjp.stop();
-                    return false;
-                }
-            },
-            lapse: {
-                show: _this.options.lapse,
-                title: "Time elapsed / Time Total",
-                text: "0:00"
-            },
-            frames: {
-                show: _this.options.frames,
-                title: "Current Frame / Total Frames",
-                text: "0"
-            },
-            progress: {
-                show: _this.options.progress,
-                value: 0,
-                max: 100,
-                onmousemove: function (e) {
-                    let position = ~~(((e.offsetX) / this.offsetWidth) * 100);
-                    let frame = _this.ndjp.frameAt(_this.ndjp.indexAt(position));
-                    if(frame) {
-                        _this.ui.thumb.show = true;
-                        _this.ui.thumb.img.src = _this.ndjp.frameBase() + (frame.th || frame.f);
-                        if(frame.tc !== undefined) {
-                            _this.ui.thumb.caption = frame.tc;
-                        }
-                        let thumb = _this.ui.thumb._node;
-                        thumb.style.left = (this.offsetLeft + e.offsetX - (thumb.clientWidth / 2)) + "px"
-                    } else {
-                        _this.ui.thumb.show = false;
-                    }
-                },
-                onmouseleave: function() {
-                    _this.ui.thumb.show = false;
-                },
-                onclick: function(e) {
-                    let position = ~~(((e.offsetX) / this.offsetWidth) * 100);
-                    let index = _this.ndjp.indexAt(position);
-                    _this.ndjp.step(index);
-                    _this.onAction("progress", _this.ndjp, _this);
-                }
-            },
-            //sizes : ["SD", "HD", "4K"],
-            thumb : {
-                show : false,
-                img : {
+        _this.ui = m2d2(element, Object.assign(_this._getUI(element), {
+            thumb: {
+                show: false,
+                img: {
                     src: ""
                 },
-                caption : ""
-            },
-        });
+                caption: ""
+            }
+        }));
     }
 
     /**
@@ -758,31 +707,126 @@ class NDJPlayer {
      * @private
      */
     _getUI(element) {
-        let html = "";
-        switch(this.options.controls) {
-            case "":
+        const _this = this;
+        let ui = { html : (element.innerHTML || "") };
+        const play = {
+            play: {
+                show: _this.options.play,
+                title: "Play",
+                text: "▶️",
+                href: "#",
+                onclick: function () {
+                    _this.onAction("play", _this.ndjp, _this);
+                    _this.ndjp.play();
+                    _this.ui.play.show = false;
+                    _this.ui.pause.show = true;
+                    return false;
+                }
+            }
+        }
+        const pause = {
+            pause: {
+                show: _this.options.pause,
+                title: "Pause",
+                text: "⏸️",
+                href: "#",
+                onclick: function () {
+                    _this.onAction("pause", _this.ndjp, _this);
+                    _this.ndjp.pause();
+                    _this.ui.play.show = true;
+                    _this.ui.pause.show = false;
+                    return false;
+                }
+            }
+        }
+        const stop = {
+            stop: {
+                title: "Stop",
+                text: "⏹️",
+                href: "#",
+                onclick: function () {
+                    _this.onAction("stop", _this.ndjp, _this);
+                    _this.ndjp.stop();
+                    return false;
+                }
+            }
+        }
+        const lapse = {
+            lapse: {
+                show: _this.options.lapse,
+                title: "Time elapsed / Time Total",
+                text: "0:00"
+            }
+        }
+        const frames = {
+            frames: {
+                show: _this.options.frames,
+                title: "Current Frame / Total Frames",
+                text: "0"
+            }
+        }
+        const progress = {
+            progress: {
+                show: _this.options.progress,
+                value: 0,
+                max: 100,
+                onmousemove: function (e) {
+                    let position = ~~(((e.offsetX) / this.offsetWidth) * 100);
+                    let frame = _this.ndjp.frameAt(_this.ndjp.indexAt(position));
+                    if (frame) {
+                        _this.ui.thumb.show = true;
+                        _this.ui.thumb.img.src = _this.ndjp.frameBase() + (frame.th || frame.f);
+                        if (frame.tc !== undefined) {
+                            _this.ui.thumb.caption = frame.tc;
+                        }
+                        let thumb = _this.ui.thumb._node;
+                        thumb.style.left = (this.offsetLeft + e.offsetX - (thumb.clientWidth / 2)) + "px"
+                    } else {
+                        _this.ui.thumb.show = false;
+                    }
+                },
+                onmouseleave: function () {
+                    _this.ui.thumb.show = false;
+                },
+                onclick: function (e) {
+                    let position = ~~(((e.offsetX) / this.offsetWidth) * 100);
+                    let index = _this.ndjp.indexAt(position);
+                    _this.ndjp.step(index);
+                    _this.onAction("progress", _this.ndjp, _this);
+                }
+            }
+        }
+        //sizes : ["SD", "HD", "4K"],
+
+        switch (this.options.controls) {
             case "basic":
             case true:
-                html = this._getBasicUI(); break;
+                ui.html = this._getBasicUI();
+                ui = Object.assign(ui, play, pause, lapse, progress);
+                break;
             case "common":
-                html = this._getCommonUI(); break;
+                ui.html = this._getCommonUI();
+                ui = Object.assign(ui, play, pause, lapse, progress, frames);
+                break;
             case "full":
-                html = this._getFullUI(); break;
+                ui.html = this._getFullUI();
+                ui = Object.assign(ui, play, pause, lapse, progress, frames, stop);
+                break;
         }
-        if(typeof this.options.controls === 'object') {
-
+        if (typeof this.options.controls === 'object') {
+            //TODO: what to show and what not to show
         }
         let root = element instanceof Node ? element : document.querySelector(element);
-        if(root) {
+        if (root) {
             let canvas = root.querySelector("canvas");
             if (!canvas) {
-                html = "<canvas></canvas>" + html;
+                ui.html = "<canvas></canvas>" + ui.html;
             }
         } else {
             console.log("Root element: " + element + " was not found in document");
-            html = "<canvas></canvas>" + html;
+            ui.html = "<canvas></canvas>" + ui.html;
         }
-        return (element.innerHTML || "") + html;
+        return ui;
     }
 
     /**
@@ -915,6 +959,21 @@ class VideoND extends HTMLElement {
         for(let d in defaultOptions) {
             options[d] = this.getAttribute(d) || this.hasAttribute(d) || defaultOptions[d];
         }
+        options.onstart = function (player) {
+            if(root.onstart !== undefined) {
+                root.onstart(player);
+            }
+        }
+        options.onload = function (player) {
+            if(root.onload !== undefined) {
+                root.onload(player);
+            }
+        }
+        options.onrender = function(frame) {
+            if(root.onrender !== undefined) {
+                root.onrender(frame, ndjPlayer.ndjp, ndjPlayer, ndjPlayer.ndjp.canvas, ndjPlayer.ndjp.ctx);
+            }
+        }
 
         this.style.display = "block";
         this.className = "ndjp";
@@ -922,15 +981,8 @@ class VideoND extends HTMLElement {
         this._root = this; //this.attachShadow({mode: 'open'});
         //this._root.innerHTML = ``;
         const root = this;
-        const ndjPlayer = new NDJPlayer(options.src, this, options, function (player) {
-            if(root.onload !== undefined) {
-                root.onload(player);
-            }
-        },function(frame) {
-            if(root.onrender !== undefined) {
-                root.onrender(frame, ndjPlayer.ndjp, ndjPlayer, ndjPlayer.ndjp.canvas, ndjPlayer.ndjp.ctx);
-            }
-        }, function (action, player, ui) {
+        const ndjPlayer = new NDJPlayer(options.src, this, options,
+        function (action, player, ui) {
             if(root.onaction !== undefined) {
                 root.onaction(action, player, ui);
             }
