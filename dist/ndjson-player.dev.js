@@ -650,29 +650,33 @@ class NDJPlayer {
      */
     _onUpdate(frame) {
         const _this = this;
-        if(_this.ui.controls.frames !== undefined) {
-            _this.ui.controls.frames.text = (_this.ndjp.currentFrame() + 1) + "/" + _this.ndjp.totalFrames()
-        }
-        if(_this.ui.controls.lapse !== undefined) {
-            let text = "";
-            const ts = _this.ndjp._startTimeStamp && frame.ts !== undefined;
-            const t = frame.t !== undefined;
-            const tt = _this.ndjp._totTime > 0;
-            if(frame.d) {
-                text = frame.d + " ";
+        if(_this.ui !== undefined) {
+            if(_this.ui.controls !== undefined) {
+                if(_this.ui.controls.frames !== undefined) {
+                    _this.ui.controls.frames.text = (_this.ndjp.currentFrame() + 1) + "/" + _this.ndjp.totalFrames()
+                }
+                if(_this.ui.controls.lapse !== undefined) {
+                    let text = "";
+                    const ts = _this.ndjp._startTimeStamp && frame.ts !== undefined;
+                    const t = frame.t !== undefined;
+                    const tt = _this.ndjp._totTime > 0;
+                    if(frame.d) {
+                        text = frame.d + " ";
+                    }
+                    if(ts) {
+                        text += _this._formatMillis(frame.ts - _this.ndjp._startTimeStamp);
+                    } else if(t) {
+                        text += frame.t.indexOf(":") > 0 ? frame.t : _this._fmtTime(frame.t);
+                    }
+                    if(tt) {
+                        text += "/" + _this.ndjp.totalTime()
+                    }
+                    _this.ui.controls.lapse.text = text
+                }
+                if(_this.ui.controls.progress !== undefined) {
+                    _this.ui.controls.progress.value = ((_this.ndjp.currentFrame() + 1) / (_this.ndjp.totalFrames())) * 100;
+                }
             }
-            if(ts) {
-                text += _this._formatMillis(frame.ts - _this.ndjp._startTimeStamp);
-            } else if(t) {
-                text += frame.t.indexOf(":") > 0 ? frame.t : _this._fmtTime(frame.t);
-            }
-            if(tt) {
-                text += "/" + _this.ndjp.totalTime()
-            }
-            _this.ui.controls.lapse.text = text
-        }
-        if(_this.ui.controls.progress !== undefined) {
-            _this.ui.controls.progress.value = ((_this.ndjp.currentFrame() + 1) / (_this.ndjp.totalFrames())) * 100;
         }
     }
 

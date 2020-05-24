@@ -6,7 +6,9 @@
   .ndjp canvas {
     width: 100%;
     height: auto;
-    background-color: black; }
+    background-color: black;
+    vertical-align: top;
+    display: block; }
   .ndjp .controls {
     background-color: black;
     padding: 5px;
