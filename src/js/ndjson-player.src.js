@@ -44,6 +44,7 @@ class NdJsonPlayer {
     _totTime   = 0;     // Number of total time (in header)
     _frames = [];       // Video content including metadata (array)
     _frameBase = ""     // Base for all frames 'fb'
+    _startTimeStamp = 0;// Starting time stamp
 
     /**
      * Examples:
@@ -141,6 +142,11 @@ class NdJsonPlayer {
             }
             if(item.tt !== undefined) {
                 _this._totTime = item.tt;
+            }
+            if(item.ts !== undefined) {
+                if(!_this._startTimeStamp) {
+                    _this._startTimeStamp = item.ts;
+                }
             }
             if(item.fps !== undefined) {
                 _this.fps= item.fps;

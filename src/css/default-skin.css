@@ -39,7 +39,9 @@
       padding: 0;
       background-color: black; }
       .ndjp .controls .thumb img {
-        max-width: 100%; }
+        max-width: 100%;
+        display: block;
+        vertical-align: top; }
       .ndjp .controls .thumb .caption {
         font-size: 80%;
         overflow: hidden;

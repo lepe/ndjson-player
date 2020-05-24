@@ -78,17 +78,17 @@ class VideoND extends HTMLElement {
             options[d] = this.getAttribute(d) || this.hasAttribute(d) || defaultOptions[d];
         }
         options.onstart = function (player) {
-            if(root.onstart !== undefined) {
+            if(root.onstart) {
                 root.onstart(player);
             }
         }
         options.onload = function (player) {
-            if(root.onload !== undefined) {
+            if(root.onload) {
                 root.onload(player);
             }
         }
         options.onrender = function(frame) {
-            if(root.onrender !== undefined) {
+            if(root.onrender) {
                 root.onrender(frame, ndjPlayer.ndjp, ndjPlayer, ndjPlayer.ndjp.canvas, ndjPlayer.ndjp.ctx);
             }
         }
@@ -101,7 +101,7 @@ class VideoND extends HTMLElement {
         const root = this;
         const ndjPlayer = new NDJPlayer(options.src, this, options,
         function (action, player, ui) {
-            if(root.onaction !== undefined) {
+            if(root.onaction) {
                 root.onaction(action, player, ui);
             }
         })

@@ -196,7 +196,7 @@ Keys that will normally go in each frame:
 {
   "f"   : "Frame content (either a URL or base64 of an image)",
   "t"   : "time, for example: 00:00:10.234",
-  "ts"  : "timestamp in Unix Time",
+  "ts"  : "timestamp in Unix Time. When used, lapsed time will be calculated based in starting time.",
   "cc"  : "Close caption that will be placed under the video",
   "x"   : "Repeat: How many times this frame will be repeated (see notes below)",
   "th"  : "Thumbnail (this will also use the value of 'fb' if present)",
@@ -207,11 +207,14 @@ Keys that will normally go in each frame:
 The player will not use these values for anything except
 displaying them as information. For example, if you set
 `tt` to "10:05" and `t` to "01:23", the player will display
-"01:23 / 10:05". If they are not set, and `tf` is set, it
-will display "frame / total frames" instead. 
+"01:23 / 10:05". 
 
-If only `tt` of `tf` are specified, the time/frame values will 
-be calculated based on the FPS value.
+`tt` can be specified as "10:13" or "134.22" (seconds with milliseconds),
+which will be formatted as: `00:00.000`.
+
+When `ts` is specified, it will replace `t` (as it is more exact) and 
+will calculate the lapsed time between the time stamp of the first image
+ (or can be specified in header). It will format the time as: `00:00:00.000`.
 
 If `d` is specified, it will also be displayed before the time. 
 You can also use `d` together with the frames if the date 
