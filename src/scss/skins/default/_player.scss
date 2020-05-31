@@ -4,6 +4,21 @@
   background-color: $video_bg;
   text-align: center;
 
+  &.fullscreen {
+    canvas {
+      top: 0;
+      bottom: 0;
+      margin: auto;
+      position: absolute;
+    }
+    .controls {
+      position: fixed;
+      width: 100%;
+      bottom: 0;
+      left: 0;
+    }
+  }
+
   canvas {
     width: 100%;
     height: auto;

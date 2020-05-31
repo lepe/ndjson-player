@@ -1,6 +1,6 @@
 {
   "name": "ndjson-player",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Video player which uses NDJSON as source and metadata.",
   "main": "src/ndjson-player.src.js",
   "scripts": {

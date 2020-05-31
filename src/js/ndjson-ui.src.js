@@ -133,6 +133,7 @@ class NDJPlayer {
     _getUI(element) {
         const _this = this;
         let ui = { html : (element.innerHTML || "") };
+        // Buttons
         const play = {
             tagName : "a",
             className : "play",
@@ -175,6 +176,31 @@ class NDJPlayer {
                 return false;
             }
         }
+        document.addEventListener('fullscreenchange', (event) => {
+            const player = _this.ndjp.player;
+            if (document.fullscreenElement) {
+                player.classList.add("fullscreen")
+            } else {
+                player.classList.remove("fullscreen")
+            }
+        });
+        const fullscreen = {
+            tagName : "a",
+            className : "fullscreen",
+            title: "Full Screen",
+            text: "⛶",
+            href: "#",
+            onclick: function (ev) {
+                const player = _this.ndjp.player;
+                if(player.classList.contains("fullscreen")) {
+                    document.exitFullscreen();
+                } else {
+                    player.requestFullscreen();
+                }
+                return false;
+            }
+        }
+        // Labels
         const lapse = {
             tagName : "label",
             className : "lapse",
@@ -189,6 +215,7 @@ class NDJPlayer {
             title: "Current Frame / Total Frames",
             text: "0"
         }
+        // Other
         const progress = {
             show: true,
             value: 0,
@@ -234,6 +261,9 @@ class NDJPlayer {
             ui.controls.progress = progress;
             if(common || full) {
                 ui.controls.frames = frames;
+            }
+            if(full) {
+                ui.controls.fullscreen = fullscreen;
             }
         }
         if (typeof this.options.controls === 'object') {
