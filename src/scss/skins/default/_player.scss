@@ -30,7 +30,6 @@
   .controls {
     background-color: $controls_bg;
     padding: $padding;
-    margin: -4px 0 0;
     display: flex;
     line-height: 20px;
 
@@ -40,6 +39,9 @@
       text-decoration: none;
       width: 20px;
       text-align: center;
+      font-family: cursive;
+      font-weight: bold;
+      font-size: 14px;
 
       &:hover {
         color: $buttons_hover;

@@ -22,7 +22,6 @@
   .ndjp .controls {
     background-color: black;
     padding: 5px;
-    margin: -4px 0 0;
     display: flex;
     line-height: 20px; }
     .ndjp .controls a {
@@ -30,7 +29,10 @@
       padding: 0 5px;
       text-decoration: none;
       width: 20px;
-      text-align: center; }
+      text-align: center;
+      font-family: cursive;
+      font-weight: bold;
+      font-size: 14px; }
       .ndjp .controls a:hover {
         color: white; }
     .ndjp .controls label {
