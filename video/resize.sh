@@ -6,6 +6,10 @@ if [[ $2 == "" ]]; then
 fi
 dir=${1%/}
 width=$2
+extension="jpg"
+if [ -n "$3" ]; then
+  extension="$3"
+fi
 echo "Resizing $dir..."
 mkdir -p "$dir-$width/"
-mogrify -resize "$width"x"$width" -path "$dir-$width" $dir/*.jpg
+mogrify -resize "$width"x"$width" -path "$dir-$width" "$dir"/*."$extension"

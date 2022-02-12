@@ -4,7 +4,11 @@
     <meta charset="UTF-8">
     <title>NDJSON Player (NDJP)</title>
     <link rel="stylesheet" href="dist/ndjson-player.min.css" type="text/css">
-    <script src="dist/ndjson-player.min.js" type="text/javascript"></script>
+    <!--script src="dist/ndjson-player.min.js" type="text/javascript"></script-->
+    <script src="src/js/m2d2.min.js" type="text/javascript"></script>
+    <script src="src/js/timer.src.js" type="text/javascript"></script>
+    <script src="src/js/ndjson-player.src.js" type="text/javascript"></script>
+    <script src="src/js/ndjson-ui.src.js" type="text/javascript"></script>
 
     <style>
         html {
@@ -34,11 +38,23 @@
     <script>
         document.addEventListener("DOMContentLoaded", function() {
 
+            let canvas = null;
+            let ctx = null;
             const player = new NDJPlayer("video/running/running-640.ndjson", "#video", {
                 controls : "common",
                 fps: 20,
                 loop: true,
-                autoplay: false
+                autoplay: false,
+                onstart: function(player) {
+                    canvas = player.canvas;
+                    ctx = player.ctx;
+                },
+                onrender: function(frame) {
+                    if (!canvas) {
+                        return;
+                    }
+                    // console.log(frame);
+                }
             });
 
         });
