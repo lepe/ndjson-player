@@ -70,6 +70,9 @@ if [[ $file == "" ]]; then
 fi
 if [[ "$thDir" == "" ]]; then
   thDir="${dir}/th"
+  if [[ ! -d "${dir}/th" ]]; then
+	thDir=""
+  fi
 fi
 
 # ----------- VALIDATION --------------

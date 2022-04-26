@@ -256,33 +256,71 @@ into the 'onRender' callback function each frame.
 
 ## Scripts
 
-Bash scripts can be located in the `video/` directory. You can use those to produce NDJSON files from
+Bash scripts can be located in the `scripts/` directory. You can use those to produce NDJSON files from
 existing videos (used as examples).
 
-Go to the `video/` directory and execute:
+Go to the `scripts/` directory and execute:
 
-`convert.sh dance/dance.mp4`
+```bash
+video2ndjson.sh ../video/dance/dance.mp4
+```
 
-That script will generate a sequence of images inside `dance/dance/` directory with the original size of the video.
+The script will create `dance.ndjson` with all the frames and thumbnails encoded in base64 (everything you need to play the video).
+
+The above script accept several options (see `video2ndjson.sh --help`):
+
+```bash
+Usage: ./video2ndjson.sh VIDEO.file [FILE] [OPTIONS]
+
+Options:
+  -o FILE             : Name of the file to create. Default: {VIDEO}.ndjson
+  -nt                 : Do not create thumbnails
+  -l PATH             : Link files instead of converting them into base64 and store images in PATH
+  -zip                : Zip directory with images and thumbnails
+  -tgz                : Create tar.gz with images and thumbnails
+  -gz                 : Gzip ndjson file when done
+  -s THUMBS_SIZE      : By default thumbnails will be of width 10% (-s 10). It can also be set in pixels (-s 100x, -s 100x50, -s x50)
+  -e EXTENSION        : Image format to export to (default: jpg) Must be supported by ffmpeg
+  -p PREFIX           : Frame (image) prefix (default: empty)
+  -w WIDTH            : Video (frames) max width (height can be automatically calculated)
+  -h HEIGHT           : Video (frames) max height (width can be automatically calculated)
+  -f FPS              : FPS of video
+  -fx 'EXTRA'         : Extra arguments to pass to 'ffmpeg'
+  -ix 'EXTRA'         : Extra arguments to pass to 'mogrify' (for resizing images)
+
+Examples:
+  ./video2ndjson.sh video.mp4
+  ./video2ndjson.sh video.mp4 new.ndjson
+  ./video2ndjson.sh video.mp4 -nt -gzip -s 10% -w 800 -e png
+```
+
+This script is using the other scripts in that directory to generate the ndjson file. If you want to go slowly and understand what it is doing (or have more flexibility), you can use these scripts separatelly (execute each script with `--help` as argument for more information).
+
+For example:
+
+```bash
+convert.sh ../video/dance/dance.mp4 /tmp/dance/ -e png -w 960 
+```
+
+That script will generate a sequence of images inside `/tmp/dance/` directory with a maximum width of 960 (height is automatically adjusted).
+
 Then, execute:
 
-`resize.sh dance/dance/ 800`
+```bash
+resize.sh /tmp/dance/ /tmp/dance/thumbs/ -w 100`
+```
 
-In which 800 is the expected size of the new images. It will create the `dance-800/` directory.
-
-Do the same for generating the thumbnails (optional):
-
-`resize.sh dance/dance/ 64`
+This will create the thumbnail images in `/tmp/dance/thumbs/` with a  width of 100.
 
 Finally, generate the NDJSON executing:
 
-`ndjson.sh dance/dance-800/ dance/dance-64/` 
+```bash
+ndjson.sh /tmp/dance/ -t /tmp/dance/thumbs/ -f 5 -b64
+```
 
-or without thumbnails: 
+Will create the `ndjson` file with FPS 5 and will encode all files as base64 (which means, you no longer need the source image frames as they
+will be embedded inside that file).
 
-`ndjson.sh dance/dance-800/` 
-
-It will create the file `dance-800.ndjson` which you can use in the player.
 
 ## Limitations
 
