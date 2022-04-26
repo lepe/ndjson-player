@@ -1,6 +1,6 @@
 {
   "name": "ndjson-player",
-  "version": "0.1.0",
+  "version": "0.1.8",
   "homepage": "https://github.com/lepe/ndjson-player",
   "authors": [
     "Alberto Lepe <dev@alepe.com>"
