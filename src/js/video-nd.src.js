@@ -64,6 +64,7 @@ class VideoND extends HTMLElement {
             preload  : 'auto', //Options are: 'metadata', 'none',
             src      : '',     //URL !important
             // Additional attributes:
+            stream      : false,  //true: allow unlimited sources
             cc          : 'auto', //Enable CC button
             caption     : '', //Set some caption over the video
             fullscreen  : false, //Use 'auto' to only display button. true = start as fullscreen

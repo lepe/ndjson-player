@@ -29,7 +29,7 @@ class NDJPlayer {
                 lapse: true,
                 frames: true
             },*/
-            resize: true //set it to false to disable adjusting the size before starting
+            resize  : true //set it to false to disable adjusting the size before starting
         }, options || {});
 
         this.onAction = onaction || function () {
@@ -47,6 +47,9 @@ class NDJPlayer {
             function (player) {
                 if(_this.options.onload !== undefined) {
                     _this.options.onload(player);
+                    if(_this.options.stream) {
+                        console.log("Warning: 'stream' is ON, so 'onload' event will never be fired.")
+                    }
                 }
             }, function (frame) {
                 _this._onUpdate(frame);
@@ -56,7 +59,7 @@ class NDJPlayer {
             }, function (player) {
                 //player.stop()
             }, function (e) {
-                debugger;
+                console.log(e);
                 //Display error in player
             });
     }
@@ -70,7 +73,11 @@ class NDJPlayer {
         if(_this.ui !== undefined) {
             if(_this.ui.controls !== undefined) {
                 if(_this.ui.controls.frames !== undefined) {
-                    _this.ui.controls.frames.text = (_this.ndjp.currentFrame() + 1) + "/" + _this.ndjp.totalFrames()
+                    if(_this.ndjp.stream) {
+                        _this.ui.controls.frames.text = (_this.ndjp.currentFrame() + 1)
+                    } else {
+                        _this.ui.controls.frames.text = (_this.ndjp.currentFrame() + 1) + "/" + _this.ndjp.totalFrames()
+                    }
                 }
                 if(_this.ui.controls.lapse !== undefined) {
                     let text = "";

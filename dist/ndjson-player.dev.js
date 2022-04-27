@@ -96,6 +96,7 @@ class NdJsonPlayer {
     loop;       //default: false
     showfirst;  //default: true : show first image
     autoplay;   //default: false
+    stream;     //default: false
     path;       //default: "" : Specify common path for images in case URL is used.
                 //              For example: path = "http://localhost:8080/images/"
                 //              then, use "img12334.jpg" as frame in NDJSON (to reduce size of file)
@@ -203,10 +204,14 @@ class NdJsonPlayer {
         _this.fps        = options.fps || 24;
         _this.loop       = options.loop || false;
         _this.autoplay   = options.autoplay || false;
+        _this.stream     = options.stream || false;
         _this.showfirst  = options.showfirst !== false;
         _this.path       = options.path || "";
 
-        // Initialize timer:
+        if(options.stream && options.loop) {
+            console.log("Warning: 'loop' and 'stream' are both set.")
+        }
+            // Initialize timer:
         _this.timer = new TimerSrc(1000 / _this.fps);
 
         // Load video:
@@ -268,24 +273,42 @@ class NdJsonPlayer {
             this._frames = [];
         }
         const decoder = new TextDecoder();
+        return _this._fetch(decoder, callback);
+    }
+
+    /**
+     * Fetch from source
+     * @param decoder
+     * @returns {Promise<ReadableStreamReadValueResult<Uint8Array> | ReadableStreamReadDoneResult<Uint8Array>>}
+     * @private
+     */
+    _fetch(decoder, callback) {
+        const _this = this;
         let buffer = '';
         return fetch(_this.src)
             .then(resp => resp.body.getReader())
             .then(reader => reader.read()
                 .then(function process ({ value, done }) {
                     if (done) {
-                        callback(JSON.parse(buffer));
-                        // We are done loading all frames
-                        _this.onLoad(_this);
-                        return;
+                        if(_this.stream) {
+                            // Prevent stack overflow:
+                            setTimeout(function(){
+                                _this._fetch(decoder, callback);
+                            }, _this.fps ? 1000 / _this.fps : 0);
+                        } else {
+                            callback(JSON.parse(buffer));
+                            // We are done loading all frames
+                            _this.onLoad(_this);
+                            return;
+                        }
                     }
                     const lines = (
                         buffer + decoder.decode(value, { stream: true })
                     ).split(/[\r\n](?=.)/);
                     buffer = lines.pop();
                     lines.map(JSON.parse).forEach(callback);
-                return reader.read().then(process);
-            })).catch(reason => this.onError(reason));
+                    return reader.read().then(process);
+                })).catch(reason => this.onError(reason));
     }
 
     /**
@@ -484,11 +507,11 @@ class NdJsonPlayer {
      * @param startFrame
      */
     play(startFrame) {
-        if (startFrame < 0) {
-            startFrame = 0;
+        if (startFrame < 0 || startFrame == undefined) {
+            this.frame = 0;
         } else if (startFrame > this._frames.length) {
-            startFrame = this._frames.length - 1;
-        } else if (startFrame !== undefined) {
+            this.frame = this._frames.length - 1;
+        } else {
             this.frame = startFrame * 1;
         }
         this.playing = true;
@@ -612,7 +635,7 @@ class NDJPlayer {
                 lapse: true,
                 frames: true
             },*/
-            resize: true //set it to false to disable adjusting the size before starting
+            resize  : true //set it to false to disable adjusting the size before starting
         }, options || {});
 
         this.onAction = onaction || function () {
@@ -630,6 +653,9 @@ class NDJPlayer {
             function (player) {
                 if(_this.options.onload !== undefined) {
                     _this.options.onload(player);
+                    if(_this.options.stream) {
+                        console.log("Warning: 'stream' is ON, so 'onload' event will never be fired.")
+                    }
                 }
             }, function (frame) {
                 _this._onUpdate(frame);
@@ -639,7 +665,7 @@ class NDJPlayer {
             }, function (player) {
                 //player.stop()
             }, function (e) {
-                debugger;
+                console.log(e);
                 //Display error in player
             });
     }
@@ -653,7 +679,11 @@ class NDJPlayer {
         if(_this.ui !== undefined) {
             if(_this.ui.controls !== undefined) {
                 if(_this.ui.controls.frames !== undefined) {
-                    _this.ui.controls.frames.text = (_this.ndjp.currentFrame() + 1) + "/" + _this.ndjp.totalFrames()
+                    if(_this.ndjp.stream) {
+                        _this.ui.controls.frames.text = (_this.ndjp.currentFrame() + 1)
+                    } else {
+                        _this.ui.controls.frames.text = (_this.ndjp.currentFrame() + 1) + "/" + _this.ndjp.totalFrames()
+                    }
                 }
                 if(_this.ui.controls.lapse !== undefined) {
                     let text = "";
@@ -985,6 +1015,7 @@ class VideoND extends HTMLElement {
             preload  : 'auto', //Options are: 'metadata', 'none',
             src      : '',     //URL !important
             // Additional attributes:
+            stream      : false,  //true: allow unlimited sources
             cc          : 'auto', //Enable CC button
             caption     : '', //Set some caption over the video
             fullscreen  : false, //Use 'auto' to only display button. true = start as fullscreen

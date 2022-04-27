@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NDJSON Player (NDJP)</title>
+    <link rel="stylesheet" href="dist/ndjson-player.min.css" type="text/css">
+    <script src="dist/ndjson-player.dev.js" type="text/javascript"></script>
+
+    <style>
+        html {
+            background-color: #242424;
+        }
+        html * {
+            box-sizing: border-box;
+        }
+        section {
+            background-color: #333;
+            border: 1px solid #494949;
+            box-shadow: 0 0 5px #0008;
+            padding: 20px;
+            width: 80%;
+            margin: auto;
+        }
+        h2 {
+            color :white;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <section>
+        <h2>
+            This example uses 'stream' mode. In order to test, can execute the script
+            which will generate the frames.
+
+            <!--
+            //TODO: its almost working, but when appending file,
+            // it will copy over and over the same video increasing
+            // the frames. If we replace the file, frames never get forward.
+            -->
+        </h2>
+        <video-nd src="video/stream/stream.ndjson" stream controls="full"></video-nd>
+    </section>
+</body>
+</html>
