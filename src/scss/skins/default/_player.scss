@@ -3,6 +3,9 @@
   border: 1px solid black;
   background-color: $video_bg;
   text-align: center;
+  * {
+    box-sizing: border-box;
+  }
 
   &.fullscreen {
     canvas {
@@ -10,8 +13,10 @@
       bottom: 0;
       margin: auto;
       position: absolute;
+      width: auto !important;
+      height: 100% !important;
     }
-    .controls {
+    .panel {
       position: fixed;
       width: 100%;
       bottom: 0;
@@ -27,7 +32,7 @@
     display: block;
   }
 
-  .controls {
+  .panel {
     background-color: $controls_bg;
     padding: $padding;
     display: flex;
@@ -35,13 +40,10 @@
 
     a {
       color: $buttons_fg;
-      padding: 0 $padding;
       text-decoration: none;
       width: 20px;
       text-align: center;
-      font-family: cursive;
-      font-weight: bold;
-      font-size: 14px;
+      line-height: 0;
 
       &:hover {
         color: $buttons_hover;
@@ -53,11 +55,14 @@
       font-family: monospace;
       white-space: nowrap;
       font-size: 80%;
+      &.lapse {
+        margin-left: $padding;
+      }
     }
 
     progress {
       vertical-align: middle;
-      margin: 5px 5px 0 5px;
+      margin: 5px;
       cursor: pointer;
       width: 100%;
     }

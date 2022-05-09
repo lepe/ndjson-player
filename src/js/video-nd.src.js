@@ -52,6 +52,10 @@
 class VideoND extends HTMLElement {
     constructor() {
         super();
+        // create shadow dom root
+        this._root = this; //this.attachShadow({mode: 'open'});
+        //this._root.innerHTML = ``;
+        const root = this;
 
         const defaultOptions = {
             // Attributes similar to <video> tag:
@@ -89,22 +93,13 @@ class VideoND extends HTMLElement {
         }
         options.onrender = function(frame) {
             if(root.onrender) {
-                root.onrender(frame, ndjPlayer.ndjp, ndjPlayer, ndjPlayer.ndjp.canvas, ndjPlayer.ndjp.ctx);
+                root.onrender(frame, ndjPlayer.wrapper, ndjPlayer, ndjPlayer.player.canvas, ndjPlayer.player.ctx);
             }
         }
 
         this.style.display = "block";
         this.className = "ndjp";
-        // create shadow dom root
-        this._root = this; //this.attachShadow({mode: 'open'});
-        //this._root.innerHTML = ``;
-        const root = this;
-        const ndjPlayer = new NDJPlayer(options.src, this, options,
-        function (action, player, ui) {
-            if(root.onaction) {
-                root.onaction(action, player, ui);
-            }
-        })
+        const ndjPlayer = new NDJPlayer(options.src, this, options);
     }
 
     setCaption(caption) {

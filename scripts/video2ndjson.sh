@@ -91,6 +91,10 @@ video="$1"
 if [[ $file == "" && $2 != "" ]]; then
   file="$2"
 fi
+if [[ $file == "" ]]; then
+  file=$(basename "$video")
+  file="${file%.*}.ndjson"
+fi
 
 # ----------- VALIDATION --------------
 if [[ ! -e $video ]]; then

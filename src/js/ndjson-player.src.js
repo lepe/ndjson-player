@@ -27,11 +27,13 @@ class NdJsonPlayer {
     onStart;    // Callback when we processed first image
     onLoad;     // Callback when data is completed loading
     onRender;   // Callback to return metadata when a frame is rendered
+    onPlay;     // Callback when we start playing
+    onStop;     // Callback when we stop playing
     onFinish;   // Callback when video reaches the last frame
     onError;    // Callback when there is an error with the source
 
     // Internal use mainly
-    player = null;     // DOM element which contains the <canvas> node
+    wrapper = null;     // DOM element which contains the <canvas> node
     canvas = null;     // <canvas> DOM object
     ctx = null;        // canvas.ctx object
     timer = null;      // TimerSrc used to manage FPS
@@ -44,6 +46,7 @@ class NdJsonPlayer {
     _totTime   = 0;     // Number of total time (in header)
     _frames = [];       // Video content including metadata (array)
     _frameBase = ""     // Base for all frames 'fb'
+    _thumbBase = ""     // Base for all thumbnails 'thb'
     _startTimeStamp = 0;// Starting time stamp
 
     /**
@@ -55,24 +58,24 @@ class NdJsonPlayer {
      * @param src     .ndjson file (see format)
      * @param element : Node, HTML element (must be a canvas). If not set, it will use '<canvas>'
      * @param options : Object replacing default values
-     * @param onstart : callback on first image displayed
-     * @param onload : callback when data has been completely loaded
-     * @param onrender : callback when a frame is updated
-     * @param onfinish : callback when the video is finished
-     * @param onerror : callback when there is an error to raise
+     * @param events  : Object containing events: (onstart, onload, onrender, onplay, onstop, onfinish, onerror)
      */
-    constructor(src, element, options, onstart, onload, onrender, onfinish, onerror) {
+    constructor(src, element, options, events) {
         const _this = this;
         _this.src = src;
         if (!window.requestAnimationFrame) {
             window.requestAnimationFrame = window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame;
         }
+        const noEvent = (() => {});
+        events = Object.assign({}, events);
         // Add events:
-        _this.onStart    = onstart  || function () {}
-        _this.onLoad     = onload   || function () {}
-        _this.onRender   = onrender || function () {}
-        _this.onFinish   = onfinish || function () {}
-        _this.onError    = onerror  || function (e) { console.log(e); }
+        _this.onStart    = events.onstart  || noEvent;
+        _this.onLoad     = events.onload   || noEvent;
+        _this.onRender   = events.onrender || noEvent;
+        _this.onPlay     = events.onplay   || noEvent;
+        _this.onStop     = events.onstop   || noEvent;
+        _this.onFinish   = events.onfinish || noEvent;
+        _this.onError    = events.onerror  || (e => { console.log(e); })
         // Fix and check arguments
         let player = null;
         if(element instanceof Node) {
@@ -107,7 +110,7 @@ class NdJsonPlayer {
         } else {
             throw "Canvas element was not found in DOM: " + element;
         }
-        _this.player = player;
+        _this.wrapper = player;
         _this.canvas.height = _this.canvas.clientHeight;
         _this.canvas.width  = _this.canvas.clientWidth;
         // Set classname for style
@@ -127,50 +130,7 @@ class NdJsonPlayer {
         _this.timer = new TimerSrc(1000 / _this.fps);
 
         // Load video:
-        _this.load(function (item) {
-            if(item.w !== undefined) {
-                _this.canvas.width  = item.w;
-            }
-            if(item.h !== undefined) {
-                _this.canvas.height = item.h;
-            }
-            if(item.fb !== undefined) {
-                _this._frameBase = item.fb;
-            }
-            if(item.tf !== undefined) {
-                _this._numFrames = item.tf;
-            }
-            if(item.tt !== undefined) {
-                _this._totTime = item.tt;
-            }
-            if(item.ts !== undefined) {
-                if(!_this._startTimeStamp) {
-                    _this._startTimeStamp = item.ts;
-                }
-            }
-            if(item.fps !== undefined) {
-                _this.fps= item.fps;
-                _this.timer = new TimerSrc(1000 / _this.fps);
-            }
-            if(item.f !== undefined) {
-                _this._frames.push(item);
-                // AutoPlay:
-                if (!_this.loaded) {
-                    _this.loaded = true;
-                    if (_this.autoplay) {
-                        _this.play();
-                    } else if (_this.showfirst) {
-                        _this.step();
-                    }
-                }
-            } else {
-                _this.onRender(item);
-            }
-            if(!_this.started) {
-                _this.onStart(_this);
-                _this.started = true;
-            }
-        });
+        _this.load();
     }
 
     /**
@@ -191,7 +151,9 @@ class NdJsonPlayer {
             .then(reader => reader.read()
                 .then(function process ({ value, done }) {
                     if (done) {
-                        callback(JSON.parse(buffer));
+                        if(callback) {
+                            callback(JSON.parse(buffer));
+                        }
                         // We are done loading all frames
                         _this.onLoad(_this);
                         return;
@@ -200,11 +162,81 @@ class NdJsonPlayer {
                         buffer + decoder.decode(value, { stream: true })
                     ).split(/[\r\n](?=.)/);
                     buffer = lines.pop();
-                    lines.map(JSON.parse).forEach(callback);
+                    lines.map(JSON.parse).forEach(item => {
+                        _this.processFrame(item);
+                        if(callback) {
+                            callback(item);
+                        }
+                    });
                 return reader.read().then(process);
             })).catch(reason => this.onError(reason));
     }
-
+    /**
+     * Add frame at the end
+     */
+    append(frame) {
+        const _this = this;
+        _this._frames.push(frame);
+    }
+    /**
+     * Add frame at the beginning
+     */
+    prepend(frame) {
+        const _this = this;
+        _this._frames.unshift(frame);
+        _this.frame ++; //TODO: test
+    }
+    /**
+     * Process a frame
+     */
+    processFrame(item) {
+        const _this = this;
+        if(item.w !== undefined) {
+            _this.canvas.width  = item.w;
+        }
+        if(item.h !== undefined) {
+            _this.canvas.height = item.h;
+        }
+        if(item.fb !== undefined) {
+            _this._frameBase = item.fb;
+        }
+        if(item.thb !== undefined) {
+            _this._thumbBase = item.thb;
+        }
+        if(item.tf !== undefined) {
+            _this._numFrames = item.tf;
+        }
+        if(item.tt !== undefined) {
+            _this._totTime = item.tt;
+        }
+        if(item.ts !== undefined) {
+            if(!_this._startTimeStamp) {
+                _this._startTimeStamp = item.ts;
+            }
+        }
+        if(item.fps !== undefined) {
+            _this.fps= item.fps;
+            _this.timer = new TimerSrc(1000 / _this.fps);
+        }
+        if(item.f !== undefined) {
+            _this._frames.push(item);
+            // AutoPlay:
+            if (!_this.loaded) {
+                _this.loaded = true;
+                if (_this.autoplay) {
+                    _this.play();
+                } else if (_this.showfirst) {
+                    _this.step();
+                }
+            }
+        } else {
+            _this.onRender(item);
+        }
+        if(!_this.started) {
+            _this.onStart(_this);
+            _this.started = true;
+        }
+    }
     /**
      * Render video
      * @param once single step
@@ -236,8 +268,8 @@ class NdJsonPlayer {
         const next = function() {
             _this.onRender(item);
             _this.timer.call(function () {
+                _this._increment();
                 if (!once) {
-                    _this._increment();
                     //Do not execute anything until its loaded
                     _this.timer.nocall();
                 }
@@ -394,7 +426,7 @@ class NdJsonPlayer {
      * @private
      */
     playerNode() {
-        return this.player;
+        return this.wrapper;
     }
 
     /**
@@ -412,6 +444,7 @@ class NdJsonPlayer {
         this.playing = true;
         this.timer.play();
         this._render(false);
+        this.onPlay(this);
     }
 
     /**
@@ -439,6 +472,7 @@ class NdJsonPlayer {
     pause() {
         this.playing = false;
         this.timer.pause();
+        this.onStop(this);
     }
 
     /**
@@ -449,6 +483,7 @@ class NdJsonPlayer {
         this.frame = 0;
         this.timer.pause();
         this._displayImg(true);
+        this.onStop(this);
     }
 
     /**
@@ -462,9 +497,11 @@ class NdJsonPlayer {
         } else if (startFrame !== undefined) {
             this.frame = startFrame * 1;
         }
+        this.onPlay(this);
         this.playing = false;
         this.timer.step();
         this._render(true);
+        this.onStop(this);
     }
 
     /**

@@ -1,0 +1,24 @@
+.ndjp {
+  .panel {
+    a {
+      font-family: monospace;
+      font-weight: bold;
+      font-size: 14px;
+      &.play::before {
+        content: "⯈";
+      }
+      &.step::before {
+        content: "⧐";
+      }
+      &.pause::before {
+        content: "⧗";
+      }
+      &.stop::before {
+        content: "⯀";
+      }
+      &.fullscreen::before {
+        content: "⛶";
+      }
+    }
+  }
+}

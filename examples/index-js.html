@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NDJSON Player (NDJP) : [Simple Way] example</title>
+    <link rel="stylesheet" href="../dist/css/ndjson-player-default-skin.min.css" type="text/css">
+    <link rel="stylesheet" href="css/example.css" type="text/css">
+    <script src="../dist/ndjson-player.src.js" type="text/javascript"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+
+            let canvas = null;
+            let ctx = null;
+            const player = new NDJPlayer("../video/running/running-640.ndjson", "#video", {
+                controls : "common",
+                fps: 20,
+                loop: true,
+                autoplay: false,
+                onstart: function(player) {
+                    canvas = player.canvas;
+                    ctx = player.ctx;
+                },
+                onrender: function(frame) {
+                    if (!canvas) {
+                        return;
+                    }
+                    // console.log(frame);
+                }
+            });
+
+        });
+    </script>
+</head>
+<body>
+    <div id="video"></div>
+</body>
+</html>

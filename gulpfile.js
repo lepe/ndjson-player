@@ -63,7 +63,7 @@ gulp.task('css', gulp.series([], function () {
         .pipe(sass().on('error', sass.logError))
         .pipe(cssmin())
         .pipe(rename({ extname : "" })) //remove extensions
-        .pipe(rename({ extname : ".min.css" }))
+        .pipe(rename({ prefix : paths.prefix + "-", extname : ".min.css" }))
         .pipe(maps.write(''))
         .pipe(gulp.dest(paths.css));
 }));
