@@ -146,13 +146,16 @@ class NdJsonPlayer {
         }
         const decoder = new TextDecoder();
         let buffer = '';
+        let count = 0;
         return fetch(_this.src)
             .then(resp => resp.body.getReader())
             .then(reader => reader.read()
                 .then(function process ({ value, done }) {
                     if (done) {
+                        const last = JSON.parse(buffer);
+                        _this.processFrame(last);
                         if(callback) {
-                            callback(JSON.parse(buffer));
+                            callback(last);
                         }
                         // We are done loading all frames
                         _this.onLoad(_this);
@@ -161,7 +164,7 @@ class NdJsonPlayer {
                     const lines = (
                         buffer + decoder.decode(value, { stream: true })
                     ).split(/[\r\n](?=.)/);
-                    buffer = lines.pop();
+                    buffer = lines.pop(); // Buffer is used to keep the "unfinished" lines together
                     lines.map(JSON.parse).forEach(item => {
                         _this.processFrame(item);
                         if(callback) {
@@ -249,7 +252,7 @@ class NdJsonPlayer {
             throw "Video is empty or no frames were found";
         }
 
-        if(this.frame >= this._frames.length) {
+        if(this.frame >= this._frames.length - 1) {
             this.frame = this.loop ? 0 : this._frames.length - 1;
         }
         if(this.frame < 0) {
@@ -299,7 +302,7 @@ class NdJsonPlayer {
                 this.onFinish(this); //Backwards playing
             }
         }
-        if(this.frame > this._frames.length - 1) {
+        if(this.frame > this.totalFrames() - 1) {
             if(this.loop) {
                 this.frame = 0;
             } else {
@@ -489,7 +492,18 @@ class NdJsonPlayer {
     /**
      * Move the video one frame in the current direction
      */
-    step(startFrame) {
+    step() {
+        this.onPlay(this);
+        this.playing = false;
+        this.timer.step();
+        this._render(true);
+        this.onStop(this);
+    }
+
+    /**
+     * Jump to frame
+     */
+    jumpTo(startFrame) {
         if (startFrame < 0) {
             startFrame = 0;
         } else if (startFrame > this._frames.length) {
@@ -497,11 +511,7 @@ class NdJsonPlayer {
         } else if (startFrame !== undefined) {
             this.frame = startFrame * 1;
         }
-        this.onPlay(this);
-        this.playing = false;
-        this.timer.step();
         this._render(true);
-        this.onStop(this);
     }
 
     /**

@@ -2910,13 +2910,16 @@ class NdJsonPlayer {
         }
         const decoder = new TextDecoder();
         let buffer = '';
+        let count = 0;
         return fetch(_this.src)
             .then(resp => resp.body.getReader())
             .then(reader => reader.read()
                 .then(function process ({ value, done }) {
                     if (done) {
+                        const last = JSON.parse(buffer);
+                        _this.processFrame(last);
                         if(callback) {
-                            callback(JSON.parse(buffer));
+                            callback(last);
                         }
                         // We are done loading all frames
                         _this.onLoad(_this);
@@ -2925,7 +2928,7 @@ class NdJsonPlayer {
                     const lines = (
                         buffer + decoder.decode(value, { stream: true })
                     ).split(/[\r\n](?=.)/);
-                    buffer = lines.pop();
+                    buffer = lines.pop(); // Buffer is used to keep the "unfinished" lines together
                     lines.map(JSON.parse).forEach(item => {
                         _this.processFrame(item);
                         if(callback) {
@@ -3013,7 +3016,7 @@ class NdJsonPlayer {
             throw "Video is empty or no frames were found";
         }
 
-        if(this.frame >= this._frames.length) {
+        if(this.frame >= this._frames.length - 1) {
             this.frame = this.loop ? 0 : this._frames.length - 1;
         }
         if(this.frame < 0) {
@@ -3063,7 +3066,7 @@ class NdJsonPlayer {
                 this.onFinish(this); //Backwards playing
             }
         }
-        if(this.frame > this._frames.length - 1) {
+        if(this.frame > this.totalFrames() - 1) {
             if(this.loop) {
                 this.frame = 0;
             } else {
@@ -3253,7 +3256,18 @@ class NdJsonPlayer {
     /**
      * Move the video one frame in the current direction
      */
-    step(startFrame) {
+    step() {
+        this.onPlay(this);
+        this.playing = false;
+        this.timer.step();
+        this._render(true);
+        this.onStop(this);
+    }
+
+    /**
+     * Jump to frame
+     */
+    jumpTo(startFrame) {
         if (startFrame < 0) {
             startFrame = 0;
         } else if (startFrame > this._frames.length) {
@@ -3261,11 +3275,7 @@ class NdJsonPlayer {
         } else if (startFrame !== undefined) {
             this.frame = startFrame * 1;
         }
-        this.onPlay(this);
-        this.playing = false;
-        this.timer.step();
         this._render(true);
-        this.onStop(this);
     }
 
     /**
@@ -3313,7 +3323,7 @@ class NDJPlayer {
 
     constructor(src, element, options) {
         const _this = this;
-        this.options = Object.assign({
+        _this.options = Object.assign({
             controls: false,
             /*
             controls : { //Example on how to show/hide elements
@@ -3330,13 +3340,15 @@ class NDJPlayer {
             },
             */
             resize: true, //set it to false to disable adjusting the size before starting
-            onaction : (action, ndjPlayer, uiPlayer) => {}
+            onaction : (action, ndjPlayer, uiPlayer) => {},
+            onplay : (ndjPlayer) => {},
+            onstop : (ndjPlayer) => {}
         }, options || {});
 
         // Create UI
         this._create(element);
         // Initialize player
-        this.player = new NdJsonPlayer(src, element, options, {
+        this.player = new NdJsonPlayer(src, element, _this.options, {
             onstart : function (player) {
                 _this._adjustSize()
                 if (_this.options.onstart !== undefined) {
@@ -3360,6 +3372,7 @@ class NDJPlayer {
                     _this.ui.step.show = false;
                 }
                 _this.ui.pause.show = true;
+                _this.options.onplay(player);
             },
             onstop : function(player) {
                 _this.ui.play.show = true;
@@ -3367,6 +3380,7 @@ class NDJPlayer {
                     _this.ui.step.show = true;
                 }
                 _this.ui.pause.show = false;
+                _this.options.onstop(player);
             },
             onfinish: function (player) {
                 //player.stop()
@@ -3605,7 +3619,7 @@ class NDJPlayer {
                     onclick: function (e) {
                         let position = ~~(((e.offsetX) / this.offsetWidth) * 100);
                         let index = _this.player.indexAt(position);
-                        _this.player.step(index);
+                        _this.player.jumpTo(index);
                         _this.ui.onaction("progress", _this.player, _this);
                     }
                 },
@@ -3640,6 +3654,12 @@ class NDJPlayer {
             },
             onaction : function(action, ndjPlayer, uiPlayer) {
                 _this.options.onaction(action, ndjPlayer, uiPlayer);
+            },
+            onplay : function(ndjPlayer) {
+                _this.options.onplay(ndjPlayer);
+            },
+            onstop : function(ndjPlayer) {
+                _this.options.onstop(ndjPlayer, uiPlayer);
             }
         }
     }

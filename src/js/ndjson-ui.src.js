@@ -11,7 +11,7 @@ class NDJPlayer {
 
     constructor(src, element, options) {
         const _this = this;
-        this.options = Object.assign({
+        _this.options = Object.assign({
             controls: false,
             /*
             controls : { //Example on how to show/hide elements
@@ -36,7 +36,7 @@ class NDJPlayer {
         // Create UI
         this._create(element);
         // Initialize player
-        this.player = new NdJsonPlayer(src, element, options, {
+        this.player = new NdJsonPlayer(src, element, _this.options, {
             onstart : function (player) {
                 _this._adjustSize()
                 if (_this.options.onstart !== undefined) {
@@ -60,7 +60,7 @@ class NDJPlayer {
                     _this.ui.step.show = false;
                 }
                 _this.ui.pause.show = true;
-                options.onplay(player);
+                _this.options.onplay(player);
             },
             onstop : function(player) {
                 _this.ui.play.show = true;
@@ -68,7 +68,7 @@ class NDJPlayer {
                     _this.ui.step.show = true;
                 }
                 _this.ui.pause.show = false;
-                options.onstop(player);
+                _this.options.onstop(player);
             },
             onfinish: function (player) {
                 //player.stop()
@@ -307,7 +307,7 @@ class NDJPlayer {
                     onclick: function (e) {
                         let position = ~~(((e.offsetX) / this.offsetWidth) * 100);
                         let index = _this.player.indexAt(position);
-                        _this.player.step(index);
+                        _this.player.jumpTo(index);
                         _this.ui.onaction("progress", _this.player, _this);
                     }
                 },
