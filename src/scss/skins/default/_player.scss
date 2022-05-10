@@ -26,13 +26,17 @@
   }
 
   &.fullscreen {
+    &.vertical {
+        canvas {
+          width: auto !important;
+          height: 100% !important;
+        }
+    }
     canvas {
       top: 0;
       bottom: 0;
       margin: auto;
       position: absolute;
-      width: auto !important;
-      height: 100% !important;
     }
     .panel {
       position: fixed;
