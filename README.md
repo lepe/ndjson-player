@@ -39,7 +39,7 @@ For this reason, NDJSON data is more suitable to use a video container than JSON
 * [Live example 1 : 640px](https://lepe.github.io/ndjson-player/examples/index.html)
 * [Live example 2 : 240px](https://lepe.github.io/ndjson-player/examples/index-240.html)
 * [Live example 3 : 1024px](https://lepe.github.io/ndjson-player/examples/index-1024.html)
-* [Live example 4 : Live](https://lepe.github.io/ndjson-player/examples/index-1024.html)
+* [Live example 4 : Live](https://lepe.github.io/ndjson-player/examples/index-live.html)
 * [Live example 5 : XHR](https://lepe.github.io/ndjson-player/examples/index-xhr.html)
 * [Live example 6 : XHR Live](https://lepe.github.io/ndjson-player/examples/index-xhr-live.html)
 * [Live example 7 : WebSocket Live](https://lepe.github.io/ndjson-player/examples/index-ws.html)
