@@ -9,5 +9,17 @@
 </head>
 <body>
     <video-nd src="http://localhost:7171/live" live fps="2" controls="live"></video-nd>
+    <script type="text/javascript">
+        /*
+            Example on how to add your own captions:
+         */
+        document.querySelector("video-nd").onrender = function(frame, player, ui, canvas, ctx) {
+            ctx.fillStyle = "#000A";
+            ctx.fillRect(5,5,103,13);
+            ctx.font = "10px Arial";
+            ctx.fillStyle = "white";
+            ctx.fillText(frame.t, 10, 15);
+        }
+    </script>
 </body>
 </html>
