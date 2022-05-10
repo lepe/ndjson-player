@@ -7,6 +7,24 @@
     box-sizing: border-box;
   }
 
+  &.common {
+    .stop, .lapse, .step, .frames, .live, .rec {
+        display: none;
+    }
+  }
+
+  &.full {
+    .live, .rec {
+        display: none;
+    }
+  }
+
+  &.live {
+    .play, .pause, .stop, .lapse, .step, .frames, progress, .thumb {
+        display: none !important;
+    }
+  }
+
   &.fullscreen {
     canvas {
       top: 0;
@@ -43,10 +61,14 @@
       text-decoration: none;
       width: 20px;
       text-align: center;
-      line-height: 0;
 
       &:hover {
         color: $buttons_hover;
+      }
+      &.rec {
+        &::before {
+            color: #f44336;
+        }
       }
     }
 
@@ -57,6 +79,10 @@
       font-size: 80%;
       &.lapse {
         margin-left: $padding;
+      }
+      &.live {
+        text-align: center;
+        width: 100%;
       }
     }
 

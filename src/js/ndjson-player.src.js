@@ -13,6 +13,7 @@ class NdJsonPlayer {
     loop;       //default: false
     showfirst;  //default: true : show first image
     autoplay;   //default: false
+    live;       //default: false // Source is a live feed
     path;       //default: "" : Specify common path for images in case URL is used.
                 //              For example: path = "http://localhost:8080/images/"
                 //              then, use "img12334.jpg" as frame in NDJSON (to reduce size of file)
@@ -122,7 +123,8 @@ class NdJsonPlayer {
         // Options:
         _this.fps        = options.fps || 24;
         _this.loop       = options.loop || false;
-        _this.autoplay   = options.autoplay || false;
+        _this.live       = options.live || false;
+        _this.autoplay   = options.autoplay || _this.live || false;
         _this.showfirst  = options.showfirst !== false;
         _this.path       = options.path || "";
 
@@ -130,9 +132,28 @@ class NdJsonPlayer {
         _this.timer = new TimerSrc(1000 / _this.fps);
 
         // Load video:
-        _this.load();
+        if(_this.live) {
+            new TimerSrc(1000 / _this.fps, () => {
+                fetch(_this.src).then(res => res.json()).then(frame => {
+                    _this.reload(frame);
+                });
+            }).play();
+        } else if(_this.src) {
+            _this.load();
+        } else {
+            console.log("Initializing without source...")
+        }
     }
-
+    /**
+     * Reset frames information
+     */
+    _reset() {
+        this._frames = [];
+        this._totTime = 0;        // Number of total time (in header)
+        this._numFrames = 0;      // Number of total frames (in header)
+        this._startTimeStamp = 0; // Starting time stamp
+        this.loaded = false;
+    }
     /**
      * Load a video file or change current video file.
      * @param callback when each frame is ready
@@ -142,7 +163,7 @@ class NdJsonPlayer {
         const _this = this;
         if(newSrc !== undefined) {
             this.src = newSrc;
-            this._frames = [];
+            this._reset();
         }
         const decoder = new TextDecoder();
         let buffer = '';
@@ -173,6 +194,38 @@ class NdJsonPlayer {
                     });
                 return reader.read().then(process);
             })).catch(reason => this.onError(reason));
+    }
+    /**
+     * Replace current frames with new ones
+     * @param frames : can be an array of objects (json), an object (single frame) or a string (ndjson)
+     * @param callback : callback when each frame is ready
+     */
+    reload(frames, callback) {
+        const _this = this;
+        const fs = []
+        _this._reset();
+
+        switch(true) {
+            case (typeof frames === 'string'):
+                fs = frames.split(/[\r\n](?=.)/.map(JSON.parse));
+                break
+            case Array.isArray(frames):
+                fs = frames
+                break
+            case (frames.constructor.name === "Object"):
+                fs.push(frames)
+                break
+            default:
+                console.log("Unable to reload frames. ")
+                return;
+            break
+        }
+        fs.forEach(item => {
+            _this.processFrame(item);
+            if(callback) {
+                callback(item);
+            }
+        });
     }
     /**
      * Add frame at the end

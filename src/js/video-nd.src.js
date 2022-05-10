@@ -62,6 +62,7 @@ class VideoND extends HTMLElement {
             autoplay : false,
             controls : false,　//true: most basic UI, 'common', 'full', or list, for example: 'play progress lapse frames'
             loop     : false,
+            live     : false,
             width    : 'auto',
             height   : 'auto',
             poster   : '',

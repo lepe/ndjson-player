@@ -5,6 +5,9 @@
       font-weight: bold;
       font-size: 14px;
       // https://en.wikipedia.org/wiki/Media_control_symbols
+      &.rec::before {
+        content: "⏺";
+      }
       &.play::before {
         content: "▶";
       }

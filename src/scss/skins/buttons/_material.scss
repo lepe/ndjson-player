@@ -9,6 +9,7 @@
 .ndjp {
   .panel {
     a {
+      line-height: 0;
       &::before {
           font-family: 'Material Icons';
           font-weight: normal;
@@ -29,6 +30,9 @@
           -moz-osx-font-smoothing: grayscale;
           /* Support for IE. */
           font-feature-settings: 'liga';
+      }
+      &.rec::before {
+        content: "fiber_manual_record";
       }
       &.play::before {
         content: "play_arrow";

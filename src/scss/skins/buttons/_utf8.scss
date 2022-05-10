@@ -4,6 +4,9 @@
       font-family: monospace;
       font-weight: bold;
       font-size: 14px;
+      &.rec::before {
+        content: "●";
+      }
       &.play::before {
         content: "⯈";
       }

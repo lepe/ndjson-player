@@ -39,6 +39,10 @@ For this reason, NDJSON data is more suitable to use a video container than JSON
 * [Live example 1 : 640px](https://lepe.github.io/ndjson-player/examples/index.html)
 * [Live example 2 : 240px](https://lepe.github.io/ndjson-player/examples/index-240.html)
 * [Live example 3 : 1024px](https://lepe.github.io/ndjson-player/examples/index-1024.html)
+* [Live example 4 : Live](https://lepe.github.io/ndjson-player/examples/index-1024.html)
+* [Live example 5 : XHR](https://lepe.github.io/ndjson-player/examples/index-xhr.html)
+* [Live example 6 : XHR Live](https://lepe.github.io/ndjson-player/examples/index-xhr-live.html)
+* [Live example 7 : WebSocket Live](https://lepe.github.io/ndjson-player/examples/index-ws.html)
 
 ## Usage
 
@@ -61,6 +65,14 @@ Currently, there are 3 different skins:
 
 You can find these `css` files under: `dist/css/` directory or in [github](https://github.com/lepe/ndjson-player/tree/master/dist/css)
 
+# Using NDJSON-Player according to your needs
+
+There are mainly 3 ways to use this library:
+
+1. [The Easiest way](#the-easiest-way-html-using-video-nd-tag)
+2. [Simple way](#simple-way-javascript-using-ndjplayer-class)
+3. [Advanced way](#advanced-way-javascript-using-ndjsonplayer)
+
 ## The Easiest way (HTML: Using video-nd tag)
 ```html
 <!-- Creates a player without controls which starts automatically and stops at the end -->
@@ -72,8 +84,11 @@ You can find these `css` files under: `dist/css/` directory or in [github](https
 <!-- Creates a player with the most common UI: basic + [thumbs, full-screen, sizes, lapse] -->
 <video-nd src="/video/demo.ndjson" controls="common"></video-nd>
 
-<!-- Creates a player with all UI options: common + [speed, frames, cc, step, stop, back, step_back, fast, fast_back] -->
+<!-- Creates a player with all UI options -->
 <video-nd src="/video/demo.ndjson" controls="full"></video-nd>
+
+<!-- Creates a player to display live feeds: -->
+<video-nd src="https://example.com/live/feed.ndjson" live controls="live"></video-nd>
 ```
 
 [see 'The Easiest Way' example](https://lepe.github.io/ndjson-player/examples/index.html)

@@ -2,10 +2,10 @@
  * @author: A. Lepe
  * Manage Timers
  * Usage:
- * var t = new TimerSrc(1000);
+ * const t = new TimerSrc(1000);
  * t.call(function() { <do> });
  * or:
- * var t = new TimerSrc(1000,function(){ <do> });
+ * const t = new TimerSrc(1000,function(){ <do> });
  * t.pause();
  * t.destroy();
  */

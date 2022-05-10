@@ -9,8 +9,63 @@ class NDJPlayer {
     options;   //Options for the UI
     ui;        //The UI
 
+    /**
+     * Initialize NDJPlayer
+     * @param src : string (URL of NDJSON file or stream) (optional)
+     * @param element : DOM selector or HTMLElement where to place NDJPlayer (optional)
+     * @param options : Object (optional)
+     */
     constructor(src, element, options) {
         const _this = this;
+        function isMedia(str) {
+            return str.indexOf(".") > 0 || str.indexOf("/") !== -1;
+        }
+        function isSelector(str) {
+            return str[0] === "." || str[0] === "#" || document.querySelector(str) !== null
+        }
+        switch(arguments.length) {
+            case 2:
+                if(arguments[1].constructor.name === "Object") {
+                    options = arguments[1];
+                    if(isMedia(arguments[0])) {
+                        element = null;
+                    } else if(arguments[0] instanceof HTMLElement || isSelector(arguments[0])) {
+                        element = arguments[0];
+                        src = null;
+                    }
+                }
+                break
+            case 1:
+                switch(true) {
+                    case arguments[0].constructor.name === "Object":
+                        options = arguments[0];
+                        src = null;
+                        element = null;
+                        break
+                    case isMedia(arguments[0]):
+                        src = arguments[0];
+                        element = null;
+                        options = {};
+                        break
+                    case arguments[0] instanceof HTMLElement || isSelector(arguments[0]):
+                        element = arguments[0];
+                        src = null;
+                        options = {};
+                        break
+                    default:
+                        console.log("Unknown parameter was passed to NDJPlayer constructor.")
+                        src = null;
+                        element = null;
+                        options = {};
+                        break
+                }
+                break
+            case 0:
+                options = {};
+                break
+            default: // More than 2
+                break
+        }
         _this.options = Object.assign({
             controls: false,
             /*
@@ -55,19 +110,23 @@ class NDJPlayer {
                 }
             },
             onplay : function(player) {
-                _this.ui.play.show = false;
-                if(! _this.ui.step.disabled) {
-                    _this.ui.step.show = false;
+                if(_this.ui.panel) {
+                    _this.ui.play.show = false;
+                    if(! _this.ui.step.css.contains("disabled")) {
+                        _this.ui.step.show = false;
+                    }
+                    _this.ui.pause.show = true;
                 }
-                _this.ui.pause.show = true;
                 _this.options.onplay(player);
             },
             onstop : function(player) {
-                _this.ui.play.show = true;
-                if(! _this.ui.step.disabled) {
-                    _this.ui.step.show = true;
+                if(_this.ui.panel) {
+                    _this.ui.play.show = true;
+                    if(! _this.ui.step.css.contains("disabled")) {
+                        _this.ui.step.show = true;
+                    }
+                    _this.ui.pause.show = false;
                 }
-                _this.ui.pause.show = false;
                 _this.options.onstop(player);
             },
             onfinish: function (player) {
@@ -86,11 +145,11 @@ class NDJPlayer {
      */
     _onUpdate(frame) {
         const _this = this;
-        if(_this.ui !== undefined) {
-            if(_this.ui.frames !== undefined) {
+        if(_this.ui) {
+            if(_this.ui.frames) {
                 _this.ui.frames.text = (_this.player.currentFrame() + 1) + "/" + _this.player.totalFrames()
             }
-            if(_this.ui.lapse !== undefined) {
+            if(_this.ui.lapse) {
                 let text = "";
                 const ts = _this.player._startTimeStamp && frame.ts !== undefined;
                 const t = frame.t !== undefined;
@@ -108,7 +167,7 @@ class NDJPlayer {
                 }
                 _this.ui.lapse.text = text
             }
-            if(_this.ui.progress !== undefined) {
+            if(_this.ui.progress) {
                 _this.ui.progress.value = ((_this.player.currentFrame() + 1) / (_this.player.totalFrames())) * 100;
             }
         }
@@ -140,9 +199,11 @@ class NDJPlayer {
         const _this = this;
         const $ = m2d2.load();
         _this.ui = $(element, _this._getUI(element));
-        ["thumb", "play", "step", "pause", "stop", "lapse", "progress", "frames", "fullscreen"].forEach(it => {
-            _this.ui[it] = _this.ui.panel[it];
-        });
+        if(_this.ui.panel) {
+            ["thumb", "play", "step", "pause", "stop", "lapse", "progress", "frames", "fullscreen"].forEach(it => {
+                _this.ui[it] = _this.ui.panel[it];
+            });
+        }
     }
 
     /**
@@ -157,18 +218,19 @@ class NDJPlayer {
 
         // noinspection FallThroughInSwitchStatementJS
         if(_this.options.controls) {
-            const full = _this.options.controls === "full";
-            const common = _this.options.controls === "common";
             ui = this._getBasicUI();
-            if(full) {
-                ui.panel.stop.show = true;
-                ui.panel.lapse.show = true;
-                ui.panel.step.disabled = false;
-                ui.panel.frames.show = true;
-                ui.panel.fullscreen.show = true;
-            }
-            if(common) {
-                ui.panel.frames.show = true;
+            // NOTE: visibility is controlled in CSS
+            switch(_this.options.controls) {
+                case "full":
+                    ui.panel.step.css.remove("disabled");
+                    break
+                case "common":
+                    break
+                case "live":
+
+                    break
+                default:
+                    break
             }
         }
         if (typeof this.options.controls === 'object') {
@@ -204,29 +266,33 @@ class NDJPlayer {
         });
         return {
             caption : "",
+            css : _this.options.controls,
             panel : {
                 tagName: "div",
                 className : "panel",
                 thumb : { //Create "thumb" inside panel
                     tagName : "figure",
                     className : "thumb",
-                    show : false,
                     img : {
                         src : ""
                     },
                     caption : {
                         tagName : "figCaption",
                         className: "caption",
-                        show : false
                     }
                 },
                 // Buttons
+                rec : {
+                    tagName : "a",
+                    className : "rec",
+                    title: "Live",
+                    href: "#"
+                },
                 play : {
                     tagName : "a",
                     className : "play",
                     title: "Play",
                     href: "#",
-                    show: true,
                     onclick: function () {
                         _this.ui.onaction("play", _this.player, _this);
                         _this.player.play();
@@ -238,7 +304,6 @@ class NDJPlayer {
                     className : "pause",
                     title: "Pause",
                     href: "#",
-                    show: false,
                     onclick: function () {
                         _this.ui.onaction("pause", _this.player, _this);
                         _this.player.pause();
@@ -247,11 +312,9 @@ class NDJPlayer {
                 },
                 step : {
                     tagName : "a",
-                    className : "step",
+                    css: ["step", "disabled"],
                     title: "Step",
                     href: "#",
-                    disabled : true, // Do not show by default
-                    show: false,
                     onclick: function () {
                         _this.ui.onaction("step", _this.player, _this);
                         _this.player.step();
@@ -263,7 +326,6 @@ class NDJPlayer {
                     className : "stop",
                     title: "Stop",
                     href: "#",
-                    show: false,
                     onclick: function () {
                         _this.ui.onaction("stop", _this.player, _this);
                         _this.player.stop();
@@ -276,13 +338,16 @@ class NDJPlayer {
                     className : "lapse",
                     title: "Time elapsed / Time Total",
                     text: "0:00",
-                    show: false
+                },
+                live : {
+                    tagName : "label",
+                    className : "live",
+                    text: "Live Feed"
                 },
                 // Progress bar
                 progress : {
                     value: 0,
                     max: 100,
-                    show : true,
                     onmousemove: function (e) {
                         let position = ~~(((e.offsetX) / this.offsetWidth) * 100);
                         let frame = _this.player.frameAt(_this.player.indexAt(position));
@@ -317,7 +382,6 @@ class NDJPlayer {
                     className : "frames",
                     title: "Current Frame / Total Frames",
                     text: "0",
-                    show: false
                 },
                 // Fullscreen toggle
                 fullscreen : {
@@ -325,7 +389,6 @@ class NDJPlayer {
                     className : "fullscreen",
                     title: "Full Screen",
                     href: "#",
-                    show: false,
                     onclick: function (ev) {
                         const player = _this.player.wrapper;
                         if(player.classList.contains("fullscreen")) {
