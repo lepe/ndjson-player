@@ -84,8 +84,8 @@ There are mainly 3 ways to use this library:
 <!-- Creates a player with the most common UI: basic + [thumbs, full-screen, sizes, lapse] -->
 <video-nd src="/video/demo.ndjson" controls="common"></video-nd>
 
-<!-- Creates a player with all UI options -->
-<video-nd src="/video/demo.ndjson" controls="full"></video-nd>
+<!-- Creates a player with all UI options with specific size -->
+<video-nd src="/video/demo.ndjson" controls="full" width="1024" height="768"></video-nd>
 
 <!-- Creates a player to display live feeds: -->
 <video-nd src="https://example.com/live/feed.ndjson" live controls="live"></video-nd>
@@ -231,9 +231,11 @@ Specifying options:
 
 ```js
 const video = new NDJPlayer("/video/demo-640.ndjson", "#video", { 
-    fps : 5,
-    loop: true,
-    autoplay: true,
+    fps : 5,        // Try to limit FPS (playing speed)
+    loop: true,     // Play from beginning when reaching end
+    autoplay: true, // Play after loading
+    width : 1024,   // If set, it will use it to scale images
+    height: 768,    // If set, it will use it to scale images
     resize : true,  // Automatically resize video
     controls : { // Decide which buttons to show or hide:
          base : "full", //Which one to use as base
@@ -376,6 +378,9 @@ Keys that will normally go in the header of a ndjson video file:
   "h"   : "Original height of the video (used to adjust canvas size)"
 }
 ```
+
+> NOTE: If there is no 'w' and 'h' for a video, you can set it 
+
 Keys that will normally go in each frame:
 ```json
 {
@@ -545,6 +550,11 @@ ndjson.sh /tmp/dance/ -t /tmp/dance/thumbs/ -f 5 -b64
 Will create the `ndjson` file with FPS 5 and will encode all files as base64 (which means, you no longer need the source image frames as they
 will be embedded inside that file).
 
+## About Video Size
+
+You can set the original video size in any of the 3 ways explained above (in the `<video-nd>` HTML tag, in `NDJPlayer` or in `NDJsonPlayer`) and 
+in the `ndjson` header (`w` and `h`). If you don't specify any, the library will try to adjust the video size automatically. However, 
+in such cases, it is possible that the image will be stretched to fit the parent element.
 
 ## Limitations
 

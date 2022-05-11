@@ -137,6 +137,10 @@ class NDJPlayer {
                 //TODO: Display error in player
             }
         });
+        // Trigger on window resize:
+        window.addEventListener('resize', function(event) {
+            _this._adjustSize();
+        }, true);
     }
 
     /**
@@ -176,17 +180,17 @@ class NDJPlayer {
     /**
      * It will adjust the video and canvas size
      * @private
+
+     FIXME: attributes in <canva> should match image!
+
      */
     _adjustSize() {
         if (this.options.resize) {
             let player = this.player.wrapper;
             let parent = player.parent();
-            if (player.clientHeight > parent.clientHeight) {
-                let ratioW = this.player.canvas.height / this.player.canvas.width;
-                let ratioH = 1 / ratioW;
-                this.player.canvas.height = parent.clientHeight - (this.options.controls ? player.querySelector(".panel").clientHeight : 0);
-                this.player.canvas.width = parent.clientWidth * (ratioW < 1 ? ratioW : ratioH);
-            }
+            let ratioW = (this.options.height || this.player.canvas.height) / (this.options.width || this.player.canvas.width);
+            this.player.canvas.height = parent.clientHeight - (this.options.controls ? player.querySelector(".panel").clientHeight : 0);
+            this.player.canvas.width = this.player.canvas.height / ratioW;
         }
     }
 

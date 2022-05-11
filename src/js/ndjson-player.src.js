@@ -112,8 +112,8 @@ class NdJsonPlayer {
             throw "Canvas element was not found in DOM: " + element;
         }
         _this.wrapper = player;
-        _this.canvas.height = _this.canvas.clientHeight;
-        _this.canvas.width  = _this.canvas.clientWidth;
+        _this.canvas.width  = _this.wrapper.parent().clientWidth;
+        _this.canvas.height = _this.wrapper.parent().clientHeight;
         // Set classname for style
         player.classList.add("ndjp");
 
@@ -127,6 +127,8 @@ class NdJsonPlayer {
         _this.autoplay   = options.autoplay || _this.live || false;
         _this.showfirst  = options.showfirst !== false;
         _this.path       = options.path || "";
+        if(options.width  === "auto") { options.width  = 0; }
+        if(options.height === "auto") { options.height = 0; }
 
         // Initialize timer:
         _this.timer = new TimerSrc(1000 / _this.fps);
