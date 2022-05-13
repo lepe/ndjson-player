@@ -18,7 +18,7 @@
                 width : 250, //TODO
                 height : 100
             });
-            $.get("http://stream.alepe.com/video1.ndjson").partial(frame => {
+            $.get("http://localhost:7171/buff.ndjson").partial(frame => {
                 player.append(JSON.encode(frame));
             });
         });
