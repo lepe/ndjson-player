@@ -2,7 +2,7 @@
  * Author : A.Lepe (dev@alepe.com)
  * License: MIT
  * Version: 0.1.8
- * Updated: 2022-05-11
+ * Updated: 2022-05-13
  * Content: ndjson-player.src.js (Bundle Source)
  */
 
@@ -3148,9 +3148,7 @@ class NdJsonPlayer {
             }
         } else {
             _this.ctx.clearRect(0, 0, _this.canvas.width, _this.canvas.height);
-            //_this.ctx.save();
             _this.ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, _this.canvas.width, _this.canvas.height);
-            //_this.ctx.restore();
             if(callback !== undefined) {
                 callback(true);
             }
@@ -3538,8 +3536,8 @@ class NDJPlayer {
                 }
                 _this.ui.lapse.text = text
             }
-            if(_this.ui.progress) {
-                _this.ui.progress.value = ((_this.player.currentFrame() + 1) / (_this.player.totalFrames())) * 100;
+            if(_this.ui.progress && _this.player.totalFrames()) {
+                _this.ui.progress.value = Math.round(((_this.player.currentFrame() + 1) / (_this.player.totalFrames())) * 100);
             }
         }
     }

@@ -171,8 +171,8 @@ class NDJPlayer {
                 }
                 _this.ui.lapse.text = text
             }
-            if(_this.ui.progress) {
-                _this.ui.progress.value = ((_this.player.currentFrame() + 1) / (_this.player.totalFrames())) * 100;
+            if(_this.ui.progress && _this.player.totalFrames()) {
+                _this.ui.progress.value = Math.round(((_this.player.currentFrame() + 1) / (_this.player.totalFrames())) * 100);
             }
         }
     }

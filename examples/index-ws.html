@@ -8,16 +8,15 @@
     <script src="../dist/ndjson-player.src.js" type="text/javascript"></script>
     <script>
         m2d2.ready($ => {
-            const ndjp = new NDJPlayer(null, "#video", {
+            const ndjp = new NDJPlayer("#video", {
                 controls : "live"
             });
 
             // Connect to WebSocket server and wait for frames
             // NOTE: we don't specify FPS, as we depend on what the server will send
             $.ws.connect({
-                host : "stream.alepe.com",
-                path : "stream2.ndjson",
-                port : "9090"
+                host : "localhost",
+                port : 7172
             }, frame => { // frame is already JSON
                 ndjp.player.reload(frame);
             });

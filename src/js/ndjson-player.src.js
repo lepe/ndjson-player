@@ -384,9 +384,7 @@ class NdJsonPlayer {
             }
         } else {
             _this.ctx.clearRect(0, 0, _this.canvas.width, _this.canvas.height);
-            //_this.ctx.save();
             _this.ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, _this.canvas.width, _this.canvas.height);
-            //_this.ctx.restore();
             if(callback !== undefined) {
                 callback(true);
             }
