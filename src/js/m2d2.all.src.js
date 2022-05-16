@@ -1,1 +1,0 @@
-../../node_modules/m2d2/dist/src/m2d2.all.src.js

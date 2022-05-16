@@ -56,6 +56,15 @@ or you can install with: `npm i ndjson-player` or `yarn add ndjson-player`
 <script src="ndjson-player.min.js" type="text/javascript"></script>
 ```
 
+The NDJSON bundle (`ndjson-player.min.js`) includes its `M2D2` dependency for UI building and interaction. 
+If you want to include your own version or bundle of `M2D2`, you need to include it separately and use the 
+`headless` version of NDJSON Player:
+
+```html
+<script src="m2d2.min.js" type="text/javascript"></script>
+<script src="ndjson-player.headless.min.js" type="text/javascript"></script>
+```
+
 #### Skins
 Currently, there are 3 different skins: 
 

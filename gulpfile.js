@@ -15,6 +15,8 @@ const paths = {
         build: 'dist/',
 		build_min: 'min/js/',
         js: 'src/js/*.js',
+        m2d2: 'node_modules/m2d2/dist/m2d2.min.js',
+        m2d2_dev: 'node_modules/m2d2/dist/src/m2d2.src.js',
 	    scss: 'src/scss/*.scss',
 		css: 'dist/css/'
 };
@@ -39,7 +41,7 @@ gulp.task('jsm', gulp.series([], function() {
 }));
 // Bundle
 gulp.task('js', gulp.series([], function() {
-        return gulp.src(paths.js)
+        return gulp.src([paths.m2d2, paths.js])
                 .pipe(maps.init())
                 .pipe(concat(paths.prefix + '.min.js'))
                 .pipe(terser())
@@ -48,9 +50,20 @@ gulp.task('js', gulp.series([], function() {
                 .pipe(maps.write(''))
                 .pipe(gulp.dest(paths.build));
 }));
+// Bundle
+gulp.task('js-headless', gulp.series([], function() {
+        return gulp.src([paths.js])
+                .pipe(maps.init())
+                .pipe(concat(paths.prefix + '.headless.min.js'))
+                .pipe(terser())
+                .pipe(maps.write())
+                .pipe(header(headers + "(Bundle 'No M2D2 included' Minimized)"))
+                .pipe(maps.write(''))
+                .pipe(gulp.dest(paths.build));
+}));
 // Source only for development
 gulp.task('dev', gulp.series([], function() {
-        return gulp.src(paths.js)
+        return gulp.src([paths.m2d2_dev, paths.js])
                 .pipe(concat(paths.prefix + (debug ? '.min.js' : '.src.js')))
                 .pipe(header(headers + "(Bundle Source)"))
                 .pipe(gulp.dest(paths.build));
@@ -70,4 +83,4 @@ gulp.task('css', gulp.series([], function () {
 
 
 // Build
-gulp.task('default', gulp.series(['jsm', 'js','dev','css']));
+gulp.task('default', gulp.series(['jsm', 'js', 'js-headless', 'dev','css']));

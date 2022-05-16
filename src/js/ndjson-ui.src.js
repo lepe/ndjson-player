@@ -201,12 +201,16 @@ class NDJPlayer {
      */
     _create(element) {
         const _this = this;
-        const $ = m2d2.load();
-        _this.ui = $(element, _this._getUI(element));
-        if(_this.ui.panel) {
-            ["thumb", "play", "step", "pause", "stop", "lapse", "progress", "frames", "fullscreen"].forEach(it => {
-                _this.ui[it] = _this.ui.panel[it];
-            });
+        if(m2d2) {
+            const $ = m2d2.load();
+            _this.ui = $(element, _this._getUI(element));
+            if(_this.ui.panel) {
+                ["thumb", "play", "step", "pause", "stop", "lapse", "progress", "frames", "fullscreen"].forEach(it => {
+                    _this.ui[it] = _this.ui.panel[it];
+                });
+            }
+        } else {
+            console.log("M2D2 was not found. Either use the standard version (which includes M2D2) or add M2D2 in your dependencies.");
         }
     }
 

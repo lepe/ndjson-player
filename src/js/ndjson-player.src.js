@@ -249,6 +249,7 @@ class NdJsonPlayer {
      */
     processFrame(item) {
         const _this = this;
+        //FIXME: when specifying width and height, the canvas is flickering due to resizing.
         if(item.w !== undefined) {
             _this.canvas.width  = item.w;
         }
