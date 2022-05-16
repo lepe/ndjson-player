@@ -1,5 +1,3 @@
-let debug = false;
-
 const gulp = require('gulp'),
     concat = require('gulp-concat'),
     rename = require('gulp-rename'),
@@ -64,8 +62,15 @@ gulp.task('js-headless', gulp.series([], function() {
 // Source only for development
 gulp.task('dev', gulp.series([], function() {
         return gulp.src([paths.m2d2_dev, paths.js])
-                .pipe(concat(paths.prefix + (debug ? '.min.js' : '.src.js')))
+                .pipe(concat(paths.prefix + '.src.js'))
                 .pipe(header(headers + "(Bundle Source)"))
+                .pipe(gulp.dest(paths.build));
+}));
+// Source only for development
+gulp.task('dev-headless', gulp.series([], function() {
+        return gulp.src([paths.js])
+                .pipe(concat(paths.prefix + '.headless.src.js'))
+                .pipe(header(headers + "(Bundle 'No M2D2 included' Source)"))
                 .pipe(gulp.dest(paths.build));
 }));
 // SCSS/CSS
@@ -83,4 +88,4 @@ gulp.task('css', gulp.series([], function () {
 
 
 // Build
-gulp.task('default', gulp.series(['jsm', 'js', 'js-headless', 'dev','css']));
+gulp.task('default', gulp.series(['jsm', 'js', 'js-headless', 'dev', 'dev-headless', 'css']));
