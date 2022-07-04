@@ -1,0 +1,28 @@
+.ndjp {
+  .panel {
+    a {
+      font-family: "emoji";
+      font-weight: bold;
+      font-size: 14px;
+      // https://en.wikipedia.org/wiki/Media_control_symbols
+      &.rec::before {
+        content: "⏺";
+      }
+      &.play::before {
+        content: "▶";
+      }
+      &.step::before {
+        content: "⏯";
+      }
+      &.pause::before {
+        content: "⏸";
+      }
+      &.stop::before {
+        content: "⏹";
+      }
+      &.fullscreen::before {
+        content: "⛶";
+      }
+    }
+  }
+}

@@ -3,15 +3,42 @@
   border: 1px solid black;
   background-color: $video_bg;
   text-align: center;
+  * {
+    box-sizing: border-box;
+  }
+
+  &.common {
+    .stop, .lapse, .step, .frames, .live, .rec {
+        display: none;
+    }
+  }
+
+  &.full {
+    .live, .rec {
+        display: none;
+    }
+  }
+
+  &.live {
+    .play, .pause, .stop, .lapse, .step, .frames, progress, .thumb {
+        display: none !important;
+    }
+  }
 
   &.fullscreen {
+    &.vertical {
+        canvas {
+          width: auto !important;
+          height: 100% !important;
+        }
+    }
     canvas {
       top: 0;
       bottom: 0;
       margin: auto;
       position: absolute;
     }
-    .controls {
+    .panel {
       position: fixed;
       width: 100%;
       bottom: 0;
@@ -27,7 +54,7 @@
     display: block;
   }
 
-  .controls {
+  .panel {
     background-color: $controls_bg;
     padding: $padding;
     display: flex;
@@ -35,16 +62,17 @@
 
     a {
       color: $buttons_fg;
-      padding: 0 $padding;
       text-decoration: none;
       width: 20px;
       text-align: center;
-      font-family: cursive;
-      font-weight: bold;
-      font-size: 14px;
 
       &:hover {
         color: $buttons_hover;
+      }
+      &.rec {
+        &::before {
+            color: #f44336;
+        }
       }
     }
 
@@ -53,11 +81,18 @@
       font-family: monospace;
       white-space: nowrap;
       font-size: 80%;
+      &.lapse {
+        margin-left: $padding;
+      }
+      &.live {
+        text-align: center;
+        width: 100%;
+      }
     }
 
     progress {
       vertical-align: middle;
-      margin: 5px 5px 0 5px;
+      margin: 5px;
       cursor: pointer;
       width: 100%;
     }
@@ -69,6 +104,7 @@
       margin: 0;
       padding: 0;
       background-color: $controls_bg;
+      display: none;
       img {
         max-width: 100%;
         display: block;

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NDJSON Player (NDJP) : LIVE Example</title>
+    <link rel="stylesheet" href="../dist/css/ndjson-player-material-skin.min.css" type="text/css">
+    <link rel="stylesheet" href="css/example.css" type="text/css">
+    <script src="../dist/ndjson-player.src.js" type="text/javascript"></script>
+</head>
+<body>
+<video-nd src="http://localhost:7171/live" live fps="30" controls="live"></video-nd>
+    <script type="text/javascript">
+        /*
+            Example on how to add your own captions:
+         */
+        document.querySelector("video-nd").onrender = function(frame, player, ui, canvas, ctx) {
+            ctx.fillStyle = "#000A";
+            ctx.fillRect(5,5,103,13);
+            ctx.font = "10px Arial";
+            ctx.fillStyle = "white";
+            ctx.fillText(frame.t, 10, 15);
+        }
+    </script>
+</body>
+</html>
