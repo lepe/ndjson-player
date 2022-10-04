@@ -92,22 +92,24 @@ class NdJsonPlayer {
             player = document.querySelector(element || "canvas");
         }
         if (player) {
+            let canvasEl = null;
             if (player.tagName === "CANVAS") {
-                _this.canvas = player;
+                canvasEl = player;
                 // create wrapper container
                 const wrapper = document.createElement('div');
                 player.parentNode.insertBefore(wrapper, player);
                 wrapper.prepend(player);
                 player = wrapper;
             } else if(player.hasChildNodes()) {
-                _this.canvas = player.querySelector("canvas");
-                if(!_this.canvas) {
+                canvasEl = player.querySelector("canvas");
+                if(!canvasEl) {
                     throw "No canvas found in element";
                 }
             } else {
-                _this.canvas = document.createElement("CANVAS");
-                player.prepend(_this.canvas);
+                canvasEl = document.createElement("CANVAS");
+                player.prepend(canvasEl);
             }
+            _this.canvas = 'OffscreenCanvas' in window ? canvasEl.transferControlToOffscreen() : canvasEl;
         } else {
             throw "Canvas element was not found in DOM: " + element;
         }
