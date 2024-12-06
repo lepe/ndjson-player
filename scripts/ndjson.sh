@@ -132,25 +132,25 @@ fi
 
 function set_common_prefix {
   if [[ $prefix == "" ]]; then
-	prefix="$1"
+	  prefix="$1"
+  else
+    i=0
+    while [ "${prefix:i:1}" == "${1:i:1}" ] && [ $i -lt ${#prefix} ] && [ $i -lt ${#1} ]; do
+      ((i++))
+    done
+    prefix="${prefix:0:$i}"
   fi
-  while [[ "$1" != "${prefix}"* ]]; do
-    prefix="${prefix%?}" #shorten 1 char at a time
-    if [ -z "$prefix" ]; then
-      break
-    fi
-  done
 }
 function set_common_th_prefix {
   if [[ $th_prefix == "" ]]; then
-	th_prefix="$1"
+	  th_prefix="$1"
+  else
+    i=0
+    while [ "${th_prefix:i:1}" == "${1:i:1}" ] && [ $i -lt ${#th_prefix} ] && [ $i -lt ${#1} ]; do
+      ((i++))
+    done
+    th_prefix="${th_prefix:0:$i}"
   fi
-  while [[ "$1" != "${th_prefix}"* ]]; do
-    th_prefix="${th_prefix%?}" #shorten 1 char at a time
-    if [ -z "$th_prefix" ]; then
-      break
-    fi
-  done
 }
 
 # Exporting frames:
@@ -193,8 +193,8 @@ if [[ $pa ]]; then
 	echo "Prefix: $prefix"
 	echo "TH Prefix: $th_prefix"
 	# Remove repeated prefixes
-	sed -i "s/$prefix//" $file
-	sed -i "s/$th_prefix//" $file
-	sed -i "s/PA_FRAME/$prefix/" $file
-	sed -i "s/PA_TH_FRAME/$th_prefix/" $file
+	sed -i "s@$prefix@@" $file
+	sed -i "s@$th_prefix@@" $file
+	sed -i "s@PA_FRAME@$prefix@" $file
+	sed -i "s@PA_TH_FRAME@$th_prefix@" $file
 fi
