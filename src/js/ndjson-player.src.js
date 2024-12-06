@@ -323,24 +323,25 @@ class NdJsonPlayer {
      */
     _displayImg(once) {
         const _this = this;
-        const item = _this._frames[_this.frame];
-        const next = function() {
-            _this.onRender(item);
-            _this.timer.call(function () {
-                _this._increment();
-                if (!once) {
-                    //Do not execute anything until its loaded
-                    _this.timer.nocall();
-                }
-                _this._displayImg();
-            });
-        }
-        if(item.f !== undefined) {
-            const frame = _this._frameBase + item.f;
-            _this._image(frame, next);
-        } else {
-            _this.onRender(item);
-            next();
+        let item = _this._frames[_this.frame];
+        if(item) {
+            const next = function() {
+                _this.onRender(item);
+                _this.timer.call(function () {
+                    _this._increment();
+                    if (!once) {
+                        //Do not execute anything until its loaded
+                        _this.timer.nocall();
+                    }
+                    _this._displayImg();
+                });
+            }
+            if(item.f !== undefined) {
+                const frame = _this._frameBase + item.f;
+                _this._image(frame, next);
+            } else {
+                next();
+            }
         }
     }
 
@@ -426,6 +427,12 @@ class NdJsonPlayer {
      */
     frameBase() {
         return this._frameBase;
+    }
+    /**
+     * Get thumb frame base
+     */
+    thumbBase() {
+        return this._thumbBase;
     }
     /**
      * Expose information about the current frame
