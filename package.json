@@ -40,6 +40,6 @@
     "gulp-sourcemaps": "^3.0.0",
     "gulp-terser": "^2.1.0",
     "gulp-umd": "^2.0.0",
-    "node-sass": "^7.0.1"
+    "node-sass": "^9.0.0"
   }
 }
