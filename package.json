@@ -30,7 +30,7 @@
     "m2d2": "^2.1.1"
   },
   "devDependencies": {
-    "gulp": "^4.0.2",
+    "gulp": "^5.0.0",
     "gulp-concat": "^2.6.1",
     "gulp-cssmin": "^0.2.0",
     "gulp-header-comment": "^0.10.0",
