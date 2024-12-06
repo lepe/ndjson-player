@@ -4,10 +4,19 @@
 - Because it uses Javascript ES6+ it will only work with modern browsers.
  ```
 
+# About BETA branch
+
+The new changes in this library will be focus on placing and playing anything using NDJSON 
+as metadata. 
+
+These changes mean that you can play many objects at the same time, for example multiple
+MP4 videos, live feeds, text or images (including simple animations) all in a single screen.
+
+**NOTE**: This documentation will change and most of it may not apply to the BETA branch.
+
 # ndjson-player
 
 NDJsonPlayer (or video-nd) uses [NDJSON](http://ndjson.org/) as source and metadata.
-It can play a sequence of images as a video and keep metadata synchronized at frame level.
 
 ## Why?
 
@@ -34,377 +43,159 @@ For this reason, NDJSON data is more suitable to use a video container than JSON
 * Adaptability: It displays well on mobile devices or any size as it adapts to the container size (try it!)
 * Full-power : It has many options, so you don't need to modify it to use it as you want.
 
-## Demo:
-
-* [Live example 1 : 640px](https://lepe.github.io/ndjson-player/examples/index.html)
-* [Live example 2 : 240px](https://lepe.github.io/ndjson-player/examples/index-240.html)
-* [Live example 3 : 1024px](https://lepe.github.io/ndjson-player/examples/index-1024.html)
-* [Live example 4 : Live](https://lepe.github.io/ndjson-player/examples/index-live.html)
-* [Live example 5 : XHR](https://lepe.github.io/ndjson-player/examples/index-xhr.html)
-* [Live example 6 : XHR Live](https://lepe.github.io/ndjson-player/examples/index-xhr-live.html)
-* [Live example 7 : WebSocket Live](https://lepe.github.io/ndjson-player/examples/index-ws.html)
-
-## Usage
-
-Files are located inside the [dist directory](https://github.com/lepe/ndjson-player/tree/master/dist).
-
-or you can install with: `npm i ndjson-player` or `yarn add ndjson-player`
-
-### Required CSS and JS
-```html
-<link rel="stylesheet" href="ndjson-player-default-skin.min.css" type="text/css">
-<script src="ndjson-player.min.js" type="text/javascript"></script>
-```
-
-The NDJSON bundle (`ndjson-player.min.js`) includes its `M2D2` dependency for UI building and interaction. 
-If you want to include your own version or bundle of `M2D2`, you need to include it separately and use the 
-`headless` version of NDJSON Player:
-
-```html
-<script src="m2d2.min.js" type="text/javascript"></script>
-<script src="ndjson-player.headless.min.js" type="text/javascript"></script>
-```
-
-#### Skins
-Currently, there are 3 different skins: 
-
-* default : It uses simple UTF-8 characters for UI buttons
-* emoji : It uses UTF-8 characters which are rendered as "Emoji" icons
-* material : It uses `Google Icons` (material design) font to render icons (best look)
-
-You can find these `css` files under: `dist/css/` directory or in [github](https://github.com/lepe/ndjson-player/tree/master/dist/css)
-
-# Using NDJSON-Player according to your needs
-
-There are mainly 3 ways to use this library:
-
-1. [The Easiest way](#the-easiest-way-html-using-video-nd-tag)
-2. [Simple way](#simple-way-javascript-using-ndjplayer-class)
-3. [Advanced way](#advanced-way-javascript-using-ndjsonplayer)
-
-## The Easiest way (HTML: Using video-nd tag)
-```html
-<!-- Creates a player without controls which starts automatically and stops at the end -->
-<video-nd src="/video/demo.ndjson" autoplay></video-nd>
-
-<!-- Creates a player with the basic controls which starts automatically and restarts when finish -->
-<video-nd src="/video/demo.ndjson" controls loop autoplay></video-nd>
-
-<!-- Creates a player with the most common UI: basic + [thumbs, full-screen, sizes, lapse] -->
-<video-nd src="/video/demo.ndjson" controls="common"></video-nd>
-
-<!-- Creates a player with all UI options with specific size -->
-<video-nd src="/video/demo.ndjson" controls="full" width="1024" height="768"></video-nd>
-
-<!-- Creates a player to display live feeds: -->
-<video-nd src="https://example.com/live/feed.ndjson" live controls="live"></video-nd>
-```
-
-[see 'The Easiest Way' example](https://lepe.github.io/ndjson-player/examples/index.html)
-
-### Events
-You can add the events to your `<video-nd>` element to process frames:
-
-#### onRender event
-
-```js
-elem.onrender = function(frame, player, ui, canvas, ctx) { ... }
-```
-
-In which:
-* frame  : is the JSON object containing the metadata and the image information
-* player : NdJsonPlayer instance. You can perform actions in it (see below).
-* ui     : UI class which wraps the canvas
-* canvas : `<canvas>` element
-* ctx    : canvas 2D context
-
-Example applications:
-
-- Add captions into the canvas  (see Example)
-- Add animations or shapes intro the video  in relation to the frames.
-- Add conditions to stop, pause or change the video speed.
-- Change other elements in the page to synchronize them with the video.
-
-> NOTE: You can apply some actions to the `player`, more on that in: [advanced way](#advanced-way-javascript-using-ndjsonplayer)
-
-Example:
-```js
-document.querySelector("video-nd").onrender = function(frame, player, canvas, ctx) {
-    ctx.font = "16px Arial";
-    ctx.fillStyle = "yellow";
-    ctx.fontWeight = "bold";
-    ctx.fillText(new Date(Date.now()).toLocaleTimeString(), 10, 30);
-}
-```
-
-#### onAction event
-
-```js
-elem.onaction = function(action, player, ui) { ... }
-```
-
-In which:
-* action : is a string describing it, like: "play", "pause", "stop", "progress"
-* player : NdJsonPlayer instance. You can perform actions in it (see below).
-* ui     : UI class which wraps the canvas
-
-Useful to execute code on some user action.
-
-#### onLoad event
-
-```js
-elem.onload = function(player) { ... }
-```
-
-Executed when the player is done downloading the source video.
-
-In which:
-* player : NdJsonPlayer instance. You can perform actions in it (see below).
-
-#### onStart event
-
-```js
-elem.onstart = function(player) { ... }
-```
-
-Executed when the first image is displayed. Useful to adjust the size of the video.
-
-In which:
-* player : NdJsonPlayer instance. You can perform actions in it (see below).
-
-#### onPlay / onStop events
-
-```js
-elem.onplay = function(player) { ... }
-elem.onstop = function(player) { ... }
-```
-
-Executed when a video is played or stopped
-
-In which:
-* player : NdJsonPlayer instance. You can perform actions in it (see below).
-
-#### onFinish event
-
-```js
-elem.onfinish = function(player) { ... }
-```
-
-Executed when we reach the end of the video (if playing backwards, it will be triggered on the beginning of the video).
-
-In which:
-* player : NdJsonPlayer instance. You can perform actions in it (see below).
-
-### Advanced HTML example:
-
-```html
-<video-nd class="youtube" src="/video/demo-HD.ndjson" controls loop autoplay fps="30" autosize>
-       <source src="/video/demo-QVGA.ndjson" width="320">
-       <source src="/video/demo-4K.ndjson" width="3840" height="2160">
-       <track src="/subtitles/en.txt" kind="subtitles" srclang="en" label="English">
-       <track src="/info/data.txt" kind="descriptions" label="Data">
-</video-nd>
-```
-
-> NOTE: `<video-nd>` tag rendering may not work with few browsers, in that case, use the following:
-
-## Simple way (javascript: using NDJPlayer class)
-
-We include the class `NDJPlayer` which extends `NdJsonPlayer` to make it
-simple to use and to control the UI (`NdJsonPlayer` has no UI).
-
-[see 'Simple Way' example](https://lepe.github.io/ndjson-player/examples/index-js.html)
-
-```js
-/*
- * @param URL : Source of video.
- * @param Node : Node to use to create the player
- */
-const video = new NDJPlayer("/video/demo-640.ndjson", "#video");
-```
-```html
-<div id="video"></div>
-```
-
-The `NDJPlayer` provides these properties:
-
-```js
-const video = new NDJPlayer(.....);
-
-video.player   // This is the NdJsonPlayer object
-video.ui       // This is the UI class which wraps the canvas 
-video.options  // Access to NDJPlayer options
-```
-
-Specifying options:
-
-```js
-const video = new NDJPlayer("/video/demo-640.ndjson", "#video", { 
-    fps : 5,        // Try to limit FPS (playing speed)
-    loop: true,     // Play from beginning when reaching end
-    autoplay: true, // Play after loading
-    width : 1024,   // If set, it will use it to scale images
-    height: 768,    // If set, it will use it to scale images
-    resize : true,  // Automatically resize video
-    controls : { // Decide which buttons to show or hide:
-         base : "full", //Which one to use as base
-         play: true, //show play/pause
-         stop: true,
-         step: false,
-         progress: true,
-         thumbs: true,
-         fullscreen: false,
-         speed: false,
-         lapse: true,
-         frames: true
-    }
-});
-```
-
-#### The UI class
-If you need to access the HTML elements inside the player (controls, etc), you will need
-to use the `UI class`. It is a [M2D2 object](https://gitlab.com/intellisrc/m2d2) which in
-essence is a DOM object. You don't need to know how to use `M2D2` to use it, you can use
-vanilla Javascript if you want, but it is much more simple if you use `M2D2`. For example,
-if you want to hide the `stop` button when you press `play`:
-
-```js
-const video = new NDJPlayer(.....);
-
-video.onAction((action, player, ui) => { 
-    if(action == "play") {
-       ui.stop.show = false;
-       ui.play.title = "Playing...";
-       ui.play.css.toggle("active"); // Toggle class name "active"
-    }
-});
-```
-
-You can also set other event callbacks like (see [events](#events)):
-```js
-video.onRender((frame, player, ui, canvas, ctx) => { ... })
-video.onLoad(player => { ... })
-video.onStart(player => { ... })
-video.onPlay(player => { ... })
-video.onStop(player => { ... })
-video.onFinish(player => { ... })
-```
-
-### Advanced way (javascript: using NdJsonPlayer)
-
-Minimal way to start it if <canvas> exists:
-```js
-const player = new NdJsonPlayer("video/video01.ndjson");
-```
-
-Specifying container:
-```js
-const player = new NdJsonPlayer("video/video01.ndjson", "#video");
-```
-
-With options:
-```js
-const player = new NdJsonPlayer("video/video01.ndjson", "#video", {
-    fps: 30,
-    loop: true,
-    autoplay: true
-});
-```
-
-With 'onRender' callback:
-```js
-const player = new NdJsonPlayer("video/video01.ndjson", "#video", {
-    fps: 30,
-    loop: true,
-    autoplay: true
-}, function(frame) {
-   // Do something each frame. 
-   // You can add metadata into the JSON frame (see examples).
-});
-```
-
-Actions:
-```js
-player.append(frame); // Add a new frame to the player at the end
-player.prepend(frame); // Add a new frame to the player at the beginning
-player.play(); //Play video manually
-player.play(100); //Skip to frame #100
-player.playForward(); //Play forward if it was playing backwards
-player.playForward(100); //Play forward from frame #100
-player.playBackwards(); //Play backwards
-player.playBackwards(100); //Play backwards from frame #100
-player.step(); //Play a single frame
-player.stepForwards(); //Play a single frame forward 
-player.stepBackwards(); //Play a single frame backwards
-player.pause(); //Pause video
-player.stop(); //Stop video and go to original position
-```
-
-Properties:
-```js
-player.ctx          // Access to canvas 2D context
-player.canvas       // Access to `<canvas>` element
-player.src          // Video source URI (NDJSON)
-player.frame        // Current frame being played
-player.multiplier   // Multiplier to control speed
-```
-
-Methods:
-```js
-player.load(callback, newSrc)  // Load a video file or change current video file.
-player.frameBase()             // Get frame base
-player.currentFrame()          // Current frame being played
-player.totalFrames()           // Return number of frames
-player.totalTime()             // Return total time of video
-player.frameAt(index)          // Return a frame in position
-player.indexAt(percentage)     // Return index number at percentage of video
-player.playerNode()            // Return player Node (wrapper of `<canvas>`)
-player.reset()                 // Stops player and clears ctx
-```
-
 ## NDJSON Format
 
-The `ndjson` file follows a specific format in order to play the video. It usually starts with a single line (JSON)
+The `ndjson` file follows a specific format. It usually starts with a single line (JSON)
 as the header (general information about the video), followed by multiple lines (JSON), each of which represents
-a frame in the video. These frames contain the images, which can be encoded with base64, or they can point into some 
-location (URL) where the images are stored.
+a frame or an object in the video. 
 
 > NOTE: You can find [some scripts](#scripts) under `/scripts/` in this repository, which can help you to generate `ndjson` 
 > files based on a video file or a directory with images.
 
-### Reserved keys:
+### Types (items)
 
-Keys that will normally go in the header of a ndjson video file:
+Specifies the type of resource or object to process. 
+```text
+g : General configuration (it only be applied to objects which uses it)
+v : Video
+a : Audio
+t : Text
+f : Frame (usually JPEG)
+p : Picture (SVG, PNG, JPEG, etc)
+c : circle
+q : square
+d : Custom data (it will be passed to onRender)
+```
+Each of these objects may have their own specific properties. 
+
+#### (g) General
+Apply the general configuration to any object. 
+
+For example: `Font-Family: "Arial", z-index: 0`, with specific canvas size and `loop = true`:
+```json
+{"i": "g", "ff": "Arial", "z": 0, "w": 640, "h": 480, "lp": true}
+```
+If an object uses the `Font-Family`(ff) property, like a `Text` object, it will use that one unless is specified in it, like:
+```json
+{"i" : "t", "ff": "Tahoma"}
+```
+
+#### (v) Video Track
+
+Video object to play on canvas. By default, it will try to cover all canvas. Width and Height specified here is from the
+source, and it is used to simplify the initialization. It can be anything supported by the browser. It can also come
+from a live stream.
+
+Properties:
 ```json
 {
-  "fb"  : "Frame base (see notes below)",
-  "thb" : "Thumbnail base (see notes below)",
-  "fps" : "Video FPS",
-  "d"   : "Date, for example: 2020-01-01 (any format is fine)",
-  "tf"  : "Total frames (number of frames in the video)",
-  "tt"  : "Total time of the video, for example: '00:09:54'",
-  "w"   : "Original width of the video (used to adjust canvas size)",
-  "h"   : "Original height of the video (used to adjust canvas size)"
+ "s"   : "[string] URL or base64 of the source (required)",
+ "t"   : "[time] Time at which video will start (if not set, it will be 00:00:00)",
+ "tt"  : "[int] Total time (after this time, the video will stop). If not set, it will be calculated",
+ "va"  : "[true|false] Video Audio (off by default)",
+ "ls"  : "[true|false] If source is from a live stream (false by default)",
+ "w"   : "[int] width of video",
+ "h"   : "[int] height of video",
+ "z"   : "[int] Z index for the object (default 0: background for videos)",
+ "sc"  : "[int] scale",
+ "ps"  : "[float] playback speed (default: 1)"
+}
+```
+example (Play immediately for 30 seconds):
+```json
+{"i": "v", "s": "/video.mp4", "tt": "00:00:30"}
+```
+
+#### (a) Audio Track
+
+Audio to play on the background.
+
+Properties:
+```json
+{
+ "s"   : "[string] URL or base64 of the source (required)",
+ "t"   : "[time] Time at which audio will start playing (if not set, it will be 00:00:00)",
+ "tt"  : "[int] Total time (after this time, the audio will stop). If not set it will be calculated"
+}
+```
+example (Play english audio for 1 minute after 15s):
+```json
+{"i": "a", "s": "/english.mp3", "t": "00:00:15", "tt": "00:01:00"}
+```
+
+#### (t) Text
+
+Text to place on screen. Can be a caption or a title.
+
+Properties:
+```json
+{
+ "s"   : "[string] Text to render",
+ "t"   : "[time] Time at which it will be visible (if not set, it will be 00:00:00)",
+ "tt"  : "[int] Total time (after this time, the text will not be shown)",
+ "x"   : "[int] X coordinate to place text",
+ "y"   : "[int] Y coordinate to place text",
+ "z"   : "[int] Z index for the object (default : top front for text)",
+ "a"   : "[int] angle (degrees) rotation",
+ "xx"  : "[int] X coordinate to move to",
+ "yy"  : "[int] Y coordinate to move to",
+ "ff"  : "[string] font family",
+ "fc"  : "[string] font color",
+ "fs"  : "[int] font size",
+ "fo"  : "[int] front (outline) stroke width",
+ "foc" : "[string] stroke color"
+}
+```
+example (Place text and display it for 5 seconds):
+```json
+{"i": "t", "s": "Please wait...", "t": "00:03:10", "tt": "00:00:05"}
+```
+
+#### (f) Frame
+
+A video frame. It can come from a live view or a video decoded by a script. The main difference with "Picture"
+is that all frames will be queued as they are read and are not designed to be rotated or moved.
+
+Properties:
+```json
+{
+ "s"   : "URL or base64",
+ "t"   : "[time] Time at which it will be visible (if not set, it will be 00:00:00)",
+ "tt"  : "[int] Total time (after this time, the text will not be shown)",
+ "w"   : "[int] width of image",
+ "h"   : "[int] height of image",
+ "sc"  : "[int] scale",   
+ "z"   : "[int] Z index for the object (default 0: as background)"
 }
 ```
 
-> NOTE: If there is no 'w' and 'h' for a video, you can set it 
+#### (p) Picture
 
-Keys that will normally go in each frame:
+Usually an overlay placed somewhere inside the canvas. Can be animated and rotated.
+
+Properties:
 ```json
 {
-  "f"   : "Frame content (either a URL or base64 of an image)",
-  "t"   : "time, for example: 00:00:10.234",
-  "ts"  : "timestamp in Unix Time. When used, lapsed time will be calculated based in starting time.",
-  "cc"  : "Close caption that will be placed under the video",
-  "x"   : "Repeat: How many times this frame will be repeated (see notes below)",
-  "th"  : "Thumbnail (this will also use the value of 'fb' if present)",
-  "tc"  : "Thumbnail caption",
-  "end" : "Final frame"
+ "s"   : "URL or base64",
+ "t"   : "[time] Time at which it will be visible (if not set, it will be 00:00:00)",
+ "tt"  : "[int] Total time (after this time, the text will not be shown)",
+ "w"   : "[int] width of image",
+ "h"   : "[int] height of image",
+ "sc"  : "[int] scale",   
+ "x"   : "[int] X coordinate to place text",
+ "y"   : "[int] Y coordinate to place text",
+ "z"   : "[int] Z index for the object (default 1: above background)",
+ "a"   : "[int] angle (degrees) initial rotation",
+ "xx"  : "[int] X coordinate to move to",
+ "yy"  : "[int] Y coordinate to move to",
+ "aa"  : "[int] angle to rotate (positive=clockwise)",
+ "ss"  : "[int] scale to size (positive=larger)"
 }
 ```
-
-The only required key is `f`. Headers are optional as well any other information.
+example (Place image rotated 90 degrees and rotate it 25 degrees counterclockwise in 18 seconds)
+```json
+{"i": "t", "s": "/img/arrow.svg", "t": "00:10:00", "tt": "00:00:18", "w": 64, "h": 64, "a": 90, "aa": -25, "x": 150, "y": 180}
+```
 
 #### About Date/Time and timestamp (tt, t, ts, d):
 The player will not use these values for anything except
@@ -423,7 +214,7 @@ If `d` is specified, it will also be displayed before the time.
 You can also use `d` together with the frames if the date 
 changes.
 
-#### About Frame and Thumbnail base (fb, thb):
+#### About Frame and Thumbnail base (sb, thb):
 The most common example could be: `data:image/jpeg;base64,`. 
 However, it can also be the base of a URL. The reason is that
 this value will be prepended to each frame, so it can be anything
@@ -431,40 +222,10 @@ that it is repeated across all frames. For example, most images
 contain the same data at the beginning which, when specified,
 the `ndjson` file size can be reduced considerably.
 
-#### About Repeat (x):
-If present, the previous frame will be repeated x times. You can use
+#### About Repeat (n):
+If present, the previous frame will be repeated n times. You can use
 this option at the beginning or at the end to keep some image for a longer
 time instead of copy+pasting the same frame many times.
-
-#### About Final Frame (end):
-When `tf` is not specified and the number of frames are unknown, you can
-specify `end` to specify the end of the video or stream. If not set,
-the player will wait for new frames.
-
-### Examples:
-
-Images as path:
-```json
-{ "fps" : 2, "fb" : "http://example.com/img/video/", "tt" : "01:10" }
-{ "f" : "frame01.jpg", "th" : "thumb01.jpg" }
-{ "f" : "frame02.jpg", "th" : "thumb02.jpg" }
-{ "f" : "frame03.jpg", "th" : "thumb03.jpg" }
-{ "f" : "frame04.jpg", "th" : "thumb04.jpg" }
-```
-Images as base64:
-```json
-{ "fb" :"data:image/jpeg;base64,/9j//gARTGF2YzU4LjEzNC4xMDAA/9sAQwAI", "thb":"data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAA", "tf": 469, "fps": 24, "w":"960", "h":"540" }
-{ "f" :"LCw0LDQ8PDw8PDxHQkdKSkpHR0dHSkpKT09...", "th":"haCgGiAASakcBRbW3LTnmUHpW5...", 
-{ "f" :"JiYtJi00NDQ0NDQ9OT1AQEA9PT09QEBARas...", "th":"9U+ZS6reZVEvQDcJ7LeUvst5ED...",
-{ "f" :"GhoeGh4jIyMjIyMqJyorKysqKioqKysrLy8...", "th":"8pVh/cum/semRq5oxeNCp6rnSp...",
-```
-
-As specified earlier, `f` is the only required key, so the following is the minimal example:
-```json
-{ "f" : "/imgs/frame01.jpg" }
-{ "f" : "/imgs/frame02.jpg" }
-{ "f" : "/imgs/frame03.jpg" }
-```
 
 ### Base64 vs Paths
 
@@ -572,7 +333,3 @@ in such cases, it is possible that the image will be stretched to fit the parent
 ## Contributing
 
 Fork this project and submit your "pull requests". If you have any issue, contact me.
-
-## Credits
-
-This player was inspired by https://github.com/lepe/frame-player/ (by Vagner Santana)

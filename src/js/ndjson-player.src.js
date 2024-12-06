@@ -9,19 +9,12 @@
  */
 class NdJsonPlayer {
     // Options
-    fps;        //default: 24FPS
     loop;       //default: false
-    showfirst;  //default: true : show first image
     autoplay;   //default: false
-    live;       //default: false // Source is a live feed
-    path;       //default: "" : Specify common path for images in case URL is used.
-                //              For example: path = "http://localhost:8080/images/"
-                //              then, use "img12334.jpg" as frame in NDJSON (to reduce size of file)
 
     // Status
     playing = false;   // Status
     loaded  = false;   // If a frame has been loaded or not
-    backwards = false; // If playing backwards
     started = false; // If the player already start playing at least 1 frame
 
     // Events
@@ -43,12 +36,22 @@ class NdJsonPlayer {
     multiplier = 1;    // Multiplier to control speed
 
     // Private
-    _numFrames = 0;     // Number of total frames (in header)
-    _totTime   = 0;     // Number of total time (in header)
     _frames = [];       // Video content including metadata (array)
-    _frameBase = ""     // Base for all frames 'fb'
-    _thumbBase = ""     // Base for all thumbnails 'thb'
-    _startTimeStamp = 0;// Starting time stamp
+    _renderItems = [];  // Objects to render
+
+    // General Configuration (Private)
+    _general        = {
+        numFrames       : 0,     // Number of total frames (in header)
+        totTime         : 0,     // Number of total time (in header)
+        frameBase       : "",     // Base for all frames 'fb'
+        thumbBase       : "",     // Base for all thumbnails 'thb'
+        startTimeStamp  : 0,      // Starting time stamp
+        fontFamily      : "",
+        fontSize        : 20,
+        fontColor       : "yellow",
+        totalTime       : "00:01:00",
+        zIndex          : 0,
+    }
 
     /**
      * Examples:
@@ -125,8 +128,7 @@ class NdJsonPlayer {
         // Options:
         _this.fps        = options.fps || 24;
         _this.loop       = options.loop || false;
-        _this.live       = options.live || false;
-        _this.autoplay   = options.autoplay || _this.live || false;
+        _this.autoplay   = options.autoplay || false;
         _this.showfirst  = options.showfirst !== false;
         _this.path       = options.path || "";
         if(options.width  === "auto") { options.width  = 0; }
@@ -136,13 +138,13 @@ class NdJsonPlayer {
         _this.timer = new TimerSrc(1000 / _this.fps);
 
         // Load video:
-        if(_this.live) {
+        if(false) { //FIXME _this.live) {
             new TimerSrc(1000 / _this.fps, () => {
                 fetch(_this.src).then(res => res.json()).then(frame => {
                     _this.reload(frame);
                 });
             }).play();
-        } else if(_this.src) {
+        } else if(_this.src && _this.autoplay) {
             _this.load();
         } else {
             console.log("Initializing without source...")
@@ -153,9 +155,6 @@ class NdJsonPlayer {
      */
     _reset() {
         this._frames = [];
-        this._totTime = 0;        // Number of total time (in header)
-        this._numFrames = 0;      // Number of total frames (in header)
-        this._startTimeStamp = 0; // Starting time stamp
         this.loaded = false;
     }
     /**
@@ -169,35 +168,38 @@ class NdJsonPlayer {
             this.src = newSrc;
             this._reset();
         }
-        const decoder = new TextDecoder();
-        let buffer = '';
-        let count = 0;
-        return fetch(_this.src)
-            .then(resp => resp.body.getReader())
-            .then(reader => reader.read()
-                .then(function process ({ value, done }) {
-                    if (done) {
-                        const last = JSON.parse(buffer);
-                        _this.processFrame(last);
-                        if(callback) {
-                            callback(last);
-                        }
-                        // We are done loading all frames
-                        _this.onLoad(_this);
-                        return;
-                    }
-                    const lines = (
-                        buffer + decoder.decode(value, { stream: true })
-                    ).split(/[\r\n](?=.)/);
-                    buffer = lines.pop(); // Buffer is used to keep the "unfinished" lines together
-                    lines.map(JSON.parse).forEach(item => {
-                        _this.processFrame(item);
-                        if(callback) {
-                            callback(item);
-                        }
-                    });
-                return reader.read().then(process);
-            })).catch(reason => this.onError(reason));
+        async function processStream(url, callback) {
+            const response = await fetch(url);
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder(); // To decode the stream into text
+            let buffer = '';
+            let done = false;
+
+            while (!done) {
+                const { value, done: isDone } = await reader.read();
+                done = isDone;
+
+                // Decode the current chunk and append to the buffer
+                buffer += decoder.decode(value, { stream: true });
+
+                // Process each line
+                let lineEndIndex;
+                while ((lineEndIndex = buffer.indexOf('\n')) !== -1) {
+                   const line = buffer.slice(0, lineEndIndex);
+                   callback(line);
+                   buffer = buffer.slice(lineEndIndex + 1); // Remove processed line from buffer
+                }
+            }
+        }
+        let header = true; // To force to process first frame right away
+        processStream(this.src, frame => {
+            if(header || _this.autoplay) {
+                _this.processFrame(JSON.parse(frame), true);
+                header = false;
+            } else {
+                _this.append(JSON.parse(frame));
+            }
+        });
     }
     /**
      * Replace current frames with new ones
@@ -249,50 +251,177 @@ class NdJsonPlayer {
     /**
      * Process a frame
      */
-    processFrame(item) {
+    //FIXME: when specifying width and height, the canvas is flickering due to resizing.
+    processFrame(item, queue) {
         const _this = this;
-        //FIXME: when specifying width and height, the canvas is flickering due to resizing.
-        if(item.w !== undefined) {
-            _this.canvas.width  = item.w;
+        const canvas = _this.canvas;
+        const ctx = _this.ctx;
+        switch(item.i) {
+            case "g": // General Config
+                if(item.lp !== undefined) {
+                    _this.loop = true;
+                }
+                if(item.w !== undefined) {
+                    _this.canvas.width  = item.w;
+                }
+                if(item.h !== undefined) {
+                    _this.canvas.height = item.h;
+                }
+                if(item.fb !== undefined) {
+                    _this._general.frameBase = item.fb;
+                }
+                if(item.thb !== undefined) {
+                    _this._general.thumbBase = item.thb;
+                }
+                if(item.tf !== undefined) {
+                    _this._general.numFrames = item.tf;
+                }
+                if(item.tt !== undefined) {
+                    _this._general.totTime = item.tt;
+                }
+                if(item.ts !== undefined) {
+                    if(!_this._general.startTimeStamp) {
+                        _this._general.startTimeStamp = item.ts;
+                    }
+                }
+                if(item.fs !== undefined) {
+                    _this._general.fontSize = item.fs;
+                }
+                if(item.fc !== undefined) {
+                    _this._general.fontColor = item.fc;
+                }
+                if(item.ff !== undefined) {
+                    _this._general.fontFamily = item.ff;
+                }
+                break
+            case "c": // Circle
+                if(item.f !== undefined) {
+                } else {
+                    console.log("Circle object didn't specify what?: " + item)
+                }
+                break
+            case "q": // Square
+                break
+            case "t": // Text
+                if(item.f !== undefined) {
+                    ctx.font = (item.fs || _this._general.fontSize) + "px " + (item.ff || _this._general.fontFamily);
+                    ctx.fillStyle = item.fc || _this._general.fontColor;
+                    ctx.fillText(item.f, item.x * 1 || 0, item.y * 1 || 0);
+                    if(queue && _this._renderItems.indexOf(item.f) == -1) {
+                        _this._renderItems.push(item);
+                    }
+                } else {
+                    console.log("Text object didn't specify content: " + item)
+                }
+                break
+            case "p": // Picture
+                if(item.f !== undefined) {
+                    const img = new Image();
+                    img.src = item.f;
+                    function rotateImage(image, angle) {
+                      const imgWidth = image.width || item.w * 1;
+                      const imgHeight = image.height || item.h * 1;
+
+                      const offscreenCanvas = document.createElement('canvas');
+                      const offscreenCtx = offscreenCanvas.getContext('2d');
+                      offscreenCanvas.width = imgWidth;
+                      offscreenCanvas.height = imgHeight;
+
+                      const imageCenterX = imgWidth / 2;
+                      const imageCenterY = imgHeight / 2;
+                      const angleInRadians = angle * Math.PI / 180;
+
+                      offscreenCtx.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
+                      offscreenCtx.translate(imageCenterX, imageCenterY);
+                      offscreenCtx.rotate(angleInRadians);
+                      offscreenCtx.drawImage(image, -imageCenterX, -imageCenterY);
+                      offscreenCtx.setTransform(1, 0, 0, 1, 0, 0);
+
+                      const canvasCenterX = canvas.width / 2;
+                      const canvasCenterY = canvas.height / 2;
+
+                      ctx.drawImage(offscreenCanvas,  item.x * 1, item.y * 1, item.w * 1, item.h * 1);
+                    }
+                    if(item.a) {
+                        rotateImage(img, item.a * 1);
+                    } else {
+                        ctx.drawImage(img, item.x * 1, item.y * 1, item.w * 1, item.h * 1);
+                    }
+                    if(queue && _this._renderItems.indexOf(item.f) == -1) {
+                        _this._renderItems.push(item);
+                    }
+                } else {
+                    console.log("Picture object didn't specify source: " + item)
+                }
+                break
+            case "f": // Frame TODO: review
+                if(item.f !== undefined) {
+                    _this._frames.push(item);
+                    // AutoPlay:
+                    if (!_this.loaded) {
+                        _this.loaded = true;
+                        if (_this.autoplay) {
+                            _this.play();
+                        } else if (_this.showfirst) {
+                            _this.step();
+                        }
+                    }
+                } else {
+                    console.log("Picture object didn't specify source: " + item)
+                }
+                break
+            case "v": // Video
+                if(item.f !== undefined) {
+                    const videoEl = document.createElement('video');
+                    const videoSource = document.createElement('source');
+                    if(item.w !== undefined) {  videoEl.width = item.w * 1;  }
+                    if(item.h !== undefined) { videoEl.height = item.h * 1;  }
+                    videoEl.muted = true; //TODO? //item.va
+                    videoEl.appendChild(videoSource);
+                    videoSource.src = item.f;
+                    videoEl.addEventListener('play', function() {
+                       const vid = this;
+                       (function loop() {
+                         if (!vid.paused && !vid.ended) {
+                            const canvas = ctx.canvas ;
+                            const hRatio = canvas.width  / vid.videoWidth    ;
+                            const vRatio = canvas.height / vid.videoHeight  ;
+                            const ratio  = Math.min ( hRatio, vRatio ); //TODO: item.sc
+                            const centerShift_x = ( canvas.width - vid.videoWidth*ratio ) / 2;
+                            const centerShift_y = ( canvas.height - vid.videoHeight*ratio ) / 2;
+                            ctx.clearRect(0,0,canvas.width, canvas.height);
+                            ctx.drawImage(vid, 0,0, vid.videoWidth, vid.videoHeight,
+                                   centerShift_x,centerShift_y,vid.videoWidth * ratio, vid.videoHeight * ratio);
+                            // TODO: call callback here for render
+                            if(_this._renderItems.length) { //FIXME: temporally test
+                                _this._renderItems.forEach(itm => {
+                                    _this.processFrame(itm, false);
+                                });
+                            }
+                            setTimeout(loop, 1000 / 30); // drawing at 30fps
+                         }
+                       })();
+                    }, 0);
+                    videoEl.play();
+                    if(_this.loop) {
+                        videoEl.onended = () => videoEl.play();
+                    }
+                } else {
+                    console.log("Video object didn't specify source: " + item)
+                }
+                break
+            case "a": // Audio
+                break
+            case "d": // Custom data
+                _this.onRender(item);
+                break
         }
-        if(item.h !== undefined) {
-            _this.canvas.height = item.h;
-        }
-        if(item.fb !== undefined) {
-            _this._frameBase = item.fb;
-        }
-        if(item.thb !== undefined) {
-            _this._thumbBase = item.thb;
-        }
-        if(item.tf !== undefined) {
-            _this._numFrames = item.tf;
-        }
-        if(item.tt !== undefined) {
-            _this._totTime = item.tt;
-        }
-        if(item.ts !== undefined) {
-            if(!_this._startTimeStamp) {
-                _this._startTimeStamp = item.ts;
-            }
-        }
+        //FIXME?:
+        /*
         if(item.fps !== undefined) {
             _this.fps= item.fps;
             _this.timer = new TimerSrc(1000 / _this.fps);
-        }
-        if(item.f !== undefined) {
-            _this._frames.push(item);
-            // AutoPlay:
-            if (!_this.loaded) {
-                _this.loaded = true;
-                if (_this.autoplay) {
-                    _this.play();
-                } else if (_this.showfirst) {
-                    _this.step();
-                }
-            }
-        } else {
-            _this.onRender(item);
-        }
+        }*/
         if(!_this.started) {
             _this.onStart(_this);
             _this.started = true;
@@ -339,7 +468,7 @@ class NdJsonPlayer {
                 });
             }
             if(item.f !== undefined) {
-                const frame = _this._frameBase + item.f;
+                const frame = _this._general.frameBase + item.f;
                 _this._image(frame, next);
             } else {
                 next();
@@ -351,7 +480,7 @@ class NdJsonPlayer {
      * Increment frame
      */
     _increment() {
-        this.frame += (this.multiplier * (this.backwards ? -1 : 1));
+        this.frame += (this.multiplier * 1);
         if(this.frame < 0) {
             if(this.loop) {
                 this.frame = this._frames.length - 1;
@@ -428,13 +557,13 @@ class NdJsonPlayer {
      * Get frame base
      */
     frameBase() {
-        return this._frameBase;
+        return this._general.frameBase;
     }
     /**
      * Get thumb frame base
      */
     thumbBase() {
-        return this._thumbBase;
+        return this._general.thumbBase;
     }
     /**
      * Expose information about the current frame
@@ -471,7 +600,7 @@ class NdJsonPlayer {
         const _this = this;
         let frame = (index < this.totalFrames()) ? _this._frames[index] : null;
         if(frame) {
-            frame.fb = _this._frameBase;
+            frame.fb = _this._general.frameBase;
         }
         return frame;
     }
@@ -519,16 +648,6 @@ class NdJsonPlayer {
      * @param startFrame
      */
     playForward(startFrame) {
-        this.backwards = false;
-        this.play(startFrame);
-    }
-
-    /**
-     * Play video in backwards direction
-     * @param startFrame
-     */
-    playBackwards(startFrame) {
-        this.backwards = true;
         this.play(startFrame);
     }
 
@@ -581,15 +700,6 @@ class NdJsonPlayer {
      * Move one frame forwards (and change direction)
      */
     stepForwards() {
-        this.backwards = false;
-        this.step()
-    }
-
-    /**
-     * Move one frame backwards (and change direction)
-     */
-    stepBackwards() {
-        this.backwards = true;
         this.step()
     }
 
