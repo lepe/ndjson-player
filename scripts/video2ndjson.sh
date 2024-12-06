@@ -15,6 +15,7 @@ if [[ $1 == "" ]]; then
     echo "  -s THUMBS_SIZE      : By default thumbnails will be of width 10% (-s 10). It can also be set in pixels (-s 100x, -s 100x50, -s x50)"
     echo "  -e EXTENSION        : Image format to export to (default: jpg) Must be supported by ffmpeg"
     echo "  -p PREFIX           : Frame (image) prefix (default: empty)"
+    echo "  -pa				    : Calculate Frame (image) prefix and Thumb prefix"
     echo "  -w WIDTH            : Video (frames) max width (height can be automatically calculated)"
     echo "  -h HEIGHT           : Video (frames) max height (width can be automatically calculated)"
     echo "  -f FPS              : FPS of video"
@@ -23,7 +24,7 @@ if [[ $1 == "" ]]; then
     echo ""
     echo "Examples:"
     echo "  $0 video.mp4"
-    echo "  $0 video.mp4 new.ndjson"
+    echo "  $0 video.mp4 -pa new.ndjson"
     echo "  $0 video.mp4 -nt -gzip -s 10% -w 800 -e png"
     echo ""
     exit;
@@ -37,6 +38,7 @@ fps=24
 thSize="5%"
 thCreate=true
 prefix=""
+previx_auto=false
 fx_extra=""
 ix_extra=""
 link_dir=""
@@ -66,6 +68,8 @@ while [[ $# -gt 0 ]]; do
            extension=$2; shift;;
         "-p" )
            prefix=$2; shift;;
+        "-pa" )
+           prefix_auto=true;;
         "-w")
            width=$2; shift;;
         "-h" )
@@ -133,7 +137,11 @@ if [[ $? == 0 ]]; then
 	mv "$outDir" "$link_dir";
 	outDir="$link_dir";
   fi
-  ./ndjson.sh "$outDir" -o "$file" -e "$extension" -f "$fps" $b64
+  pa=""
+  if [[ $prefix_auto ]]; then
+	pa="-pa"
+  fi
+  ./ndjson.sh "$outDir" -o "$file" -e "$extension" -f "$fps" $pa $b64
   if [[ $? == 0 ]]; then
       bname="${file%.*}"
       if [[ $zip_dir == true ]]; then

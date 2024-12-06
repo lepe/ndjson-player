@@ -12,6 +12,7 @@ if [[ $1 == "" ]]; then
     echo "  -e EXTENSION        : Image extension filter (by default will get any file inside directory)"
     echo "  -s WIDTHxHEIGHT     : Force size (or in case detection is failing)."
     echo "  -f FPS              : FPS to specify in header (default: 24)"
+    echo "  -pa                 : Automatically calculate frame and thumb prefixes (only for base64)"
     echo "  -b64                : Encode files to Base64 instead of using file path"
     echo ""
     echo "Examples:"
@@ -29,6 +30,9 @@ width=0
 height=0
 thDir=""
 b64=false
+pa=false
+prefix=""
+th_prefix=""
 
 POS_ARGS=()
 
@@ -46,6 +50,8 @@ while [[ $# -gt 0 ]]; do
            shift;;
         "-f" )
            fps=$2; shift;;
+        "-pa" )
+           pa=true;;
         "-b64" )
            b64=true;;
         "--help" )
@@ -115,18 +121,47 @@ fi
 if [[ $b64 == true ]]; then
   first="${images[0]}";
   contentType=$(file --mime-type "$first" | awk '{ print $2 }')
-  echo "{\"fb\":\"data:${contentType};base64,\", \"tf\": $totalFrames, \"fps\": $fps, \"w\":\"$width\", \"h\":\"$height\" }" > "$file"
+  if [[ $pa ]]; then
+	  echo "{\"fb\":\"data:${contentType};base64,PA_FRAME\", \"thb\": \"data:${contentType};base64,PA_TH_FRAME\", \"tf\": $totalFrames, \"fps\": $fps, \"w\":\"$width\", \"h\":\"$height\" }" > "$file"
+  else
+	  echo "{\"fb\":\"data:${contentType};base64,\", \"tf\": $totalFrames, \"fps\": $fps, \"w\":\"$width\", \"h\":\"$height\" }" > "$file"
+  fi
 else
   echo "{\"fb\":\"$dir/\", \"tf\": $totalFrames, \"fps\": $fps, \"w\":\"$width\", \"h\":\"$height\" }" > "$file"
 fi
+
+function set_common_prefix {
+  if [[ $prefix == "" ]]; then
+	prefix="$1"
+  fi
+  while [[ "$1" != "${prefix}"* ]]; do
+    prefix="${prefix%?}" #shorten 1 char at a time
+    if [ -z "$prefix" ]; then
+      break
+    fi
+  done
+}
+function set_common_th_prefix {
+  if [[ $th_prefix == "" ]]; then
+	th_prefix="$1"
+  fi
+  while [[ "$1" != "${th_prefix}"* ]]; do
+    th_prefix="${th_prefix%?}" #shorten 1 char at a time
+    if [ -z "$th_prefix" ]; then
+      break
+    fi
+  done
+}
 
 # Exporting frames:
 function export_frame_b64 {
     frame="$1"
     fileBase=$(basename $frame);
     enc64=$(base64 -w 0 $frame);
+	set_common_prefix "$enc64"
     if [[ $thDir != "" ]]; then
       thb64=$(base64 -w 0 $thDir/$fileBase);
+	  set_common_th_prefix "$thb64"
       echo "{\"f\":\"$enc64\", \"th\":\"$thb64\" }" >> "$file"
     else
       echo "{\"f\":\"$enc64\"}" >> "$file"
@@ -153,3 +188,13 @@ for img in "${images[@]}"; do
     export_frame_link "$img";
   fi
 done
+
+if [[ $pa ]]; then
+	echo "Prefix: $prefix"
+	echo "TH Prefix: $th_prefix"
+	# Remove repeated prefixes
+	sed -i "s/$prefix//" $file
+	sed -i "s/$th_prefix//" $file
+	sed -i "s/PA_FRAME/$prefix/" $file
+	sed -i "s/PA_TH_FRAME/$th_prefix/" $file
+fi
