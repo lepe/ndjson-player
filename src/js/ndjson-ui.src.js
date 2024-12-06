@@ -361,7 +361,7 @@ class NDJPlayer {
                         let frame = _this.player.frameAt(_this.player.indexAt(position));
                         if (frame) {
                             _this.ui.thumb.show = true;
-                            _this.ui.thumb.img.src = _this.player.frameBase() + (frame.th || frame.f);
+                            _this.ui.thumb.img.src = (_this.player.thumbBase() || _this.player.frameBase()) + (frame.th || frame.f);
                             _this.ui.thumb.img.onload = function() {
                                 const width = _this.ui.thumb.img.naturalWidth || _this.ui.thumb.img.width;
                                 _this.ui.thumb.style.width = width + "px";
