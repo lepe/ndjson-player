@@ -69,11 +69,27 @@ d : Custom data (it will be passed to onRender)
 Each of these objects may have their own specific properties. 
 
 #### (g) General
-Apply the general configuration to any object. 
 
-For example: `Font-Family: "Arial", z-index: 0`, with specific canvas size and `loop = true`:
+Define global properties or default values for any other object which uses such properties.
+
+Global Properties: (only applies to 'g')
+
 ```json
-{"i": "g", "ff": "Arial", "z": 0, "w": 640, "h": 480, "lp": true}
+{
+ "fps" : "[int] frames per second (default: 24)",
+ "kar" : "[bool] keep aspect ratio (default: true)",
+ "sc"  : "[int] scale = number of pixels in canvas width (default 1000 or initial canvas width property 'w')",
+ "w"   : "[int] initial width for canvas",
+ "h"   : "[int] initial height for canvas"
+}
+```
+NOTE: scale is used to calculate positions inside canvas. It is a logical value regardless of actual canvas size.
+
+Besides the above, you can define default values for object properties:
+
+For example: `font-style: "16px Arial"; z-index: 0` and `loop = true`:
+```json
+{"i": "g", "fs": 16, "ff": "Arial", "z": 0, "lp": true}
 ```
 If an object uses the `Font-Family`(ff) property, like a `Text` object, it will use that one unless is specified in it, like:
 ```json
@@ -97,7 +113,6 @@ Properties:
  "w"   : "[int] width of video",
  "h"   : "[int] height of video",
  "z"   : "[int] Z index for the object (default 0: background for videos)",
- "sc"  : "[int] scale",
  "ps"  : "[float] playback speed (default: 1)"
 }
 ```
@@ -130,20 +145,21 @@ Text to place on screen. Can be a caption or a title.
 Properties:
 ```json
 {
+ "a"   : "[int] angle (degrees) rotation",
+ "fc"  : "[string] font color",
+ "ff"  : "[string] font family",
+ "fo"  : "[int] front (outline) stroke width",
+ "foc" : "[string] stroke color",
+ "fs"  : "[int] font size",
  "s"   : "[string] Text to render",
+ "sc"  : "[int] scale (width of non-resized canvas)",
  "t"   : "[time] Time at which it will be visible (if not set, it will be 00:00:00)",
  "tt"  : "[int] Total time (after this time, the text will not be shown)",
  "x"   : "[int] X coordinate to place text",
- "y"   : "[int] Y coordinate to place text",
- "z"   : "[int] Z index for the object (default : top front for text)",
- "a"   : "[int] angle (degrees) rotation",
  "xx"  : "[int] X coordinate to move to",
+ "y"   : "[int] Y coordinate to place text",
  "yy"  : "[int] Y coordinate to move to",
- "ff"  : "[string] font family",
- "fc"  : "[string] font color",
- "fs"  : "[int] font size",
- "fo"  : "[int] front (outline) stroke width",
- "foc" : "[string] stroke color"
+ "z"   : "[int] Z index for the object (default : top front for text)"
 }
 ```
 example (Place text and display it for 5 seconds):
@@ -164,7 +180,7 @@ Properties:
  "tt"  : "[int] Total time (after this time, the text will not be shown)",
  "w"   : "[int] width of image",
  "h"   : "[int] height of image",
- "sc"  : "[int] scale",   
+ "sc"  : "[int] scale (width of non-resized canvas)",   
  "z"   : "[int] Z index for the object (default 0: as background)"
 }
 ```
@@ -176,20 +192,23 @@ Usually an overlay placed somewhere inside the canvas. Can be animated and rotat
 Properties:
 ```json
 {
+ "a"   : "[int] angle (degrees) initial rotation",
+ "aa"  : "[int] angle to rotate (positive=clockwise)",
+ "fh"  : "[bool] If true, it will flip the image horizontally.",
+ "fv"  : "[bool] If true, it will flip the image vertically.",
+ "h"   : "[int] height of image",
  "s"   : "URL or base64",
+ "sc"  : "[int] scale (width of non-resized canvas)",
+ "ss"  : "[int] scale to size (positive=larger)",
  "t"   : "[time] Time at which it will be visible (if not set, it will be 00:00:00)",
+ "tl"  : "[bool] If true, will use top-left coordinate for drawing image instead of center.",
  "tt"  : "[int] Total time (after this time, the text will not be shown)",
  "w"   : "[int] width of image",
- "h"   : "[int] height of image",
- "sc"  : "[int] scale",   
  "x"   : "[int] X coordinate to place text",
- "y"   : "[int] Y coordinate to place text",
- "z"   : "[int] Z index for the object (default 1: above background)",
- "a"   : "[int] angle (degrees) initial rotation",
  "xx"  : "[int] X coordinate to move to",
+ "y"   : "[int] Y coordinate to place text",
  "yy"  : "[int] Y coordinate to move to",
- "aa"  : "[int] angle to rotate (positive=clockwise)",
- "ss"  : "[int] scale to size (positive=larger)"
+ "z"   : "[int] Z index for the object (default 1: above background)"
 }
 ```
 example (Place image rotated 90 degrees and rotate it 25 degrees counterclockwise in 18 seconds)

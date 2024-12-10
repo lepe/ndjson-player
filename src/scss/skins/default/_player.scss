@@ -59,6 +59,9 @@
     padding: $padding;
     display: flex;
     line-height: 20px;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
 
     a {
       color: $buttons_fg;

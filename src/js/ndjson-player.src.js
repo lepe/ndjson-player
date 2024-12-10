@@ -38,6 +38,7 @@ class NdJsonPlayer {
     // Private
     _frames = [];       // Video content including metadata (array)
     _renderItems = [];  // Objects to render
+    _aspectRatio = 0;   // To be calculated later
 
     // General Configuration (Private)
     _general        = {
@@ -46,10 +47,13 @@ class NdJsonPlayer {
         frameBase       : "",     // Base for all frames 'fb'
         thumbBase       : "",     // Base for all thumbnails 'thb'
         startTimeStamp  : 0,      // Starting time stamp
+        keepAspectRatio : true,
+        framesPerSec    : 24,
         fontFamily      : "",
         fontSize        : 20,
         fontColor       : "yellow",
         totalTime       : "00:01:00",
+        scale           : 1000,  // Number of pixels to use in canvas drawing (usually canvas width when it is not resized: background image/video width)
         zIndex          : 0,
     }
 
@@ -119,6 +123,7 @@ class NdJsonPlayer {
         _this.wrapper = player;
         _this.canvas.width  = _this.wrapper.parent().clientWidth;
         _this.canvas.height = _this.wrapper.parent().clientHeight;
+        _this._aspectRatio = _this.canvas.height / _this.canvas.width;
         // Set classname for style
         player.classList.add("ndjp");
 
@@ -263,9 +268,23 @@ class NdJsonPlayer {
                 }
                 if(item.w !== undefined) {
                     _this.canvas.width  = item.w;
+                    if(item.sc == undefined) {
+                        _this._general.scale = item.w;
+                    }
+                    _this._aspectRatio = _this.canvas.height / _this.canvas.width;
                 }
                 if(item.h !== undefined) {
                     _this.canvas.height = item.h;
+                    _this._aspectRatio = _this.canvas.height / _this.canvas.width;
+                }
+                if(item.kar !== undefined) {
+                    _this._general.keepAspectRatio = item.kar;
+                }
+                if(item.sc !== undefined) {
+                    _this._general.scale = item.sc;
+                }
+                if(item.fps !== undefined) {
+                    _this._general.framesPerSec = item.fps;
                 }
                 if(item.fb !== undefined) {
                     _this._general.frameBase = item.fb;
@@ -304,9 +323,12 @@ class NdJsonPlayer {
                 break
             case "t": // Text
                 if(item.f !== undefined) {
-                    ctx.font = (item.fs || _this._general.fontSize) + "px " + (item.ff || _this._general.fontFamily);
+                    const cw = canvas.width;
+                    const scale = cw / (item.sc ||_this._general.scale);
+
+                    ctx.font = ((item.fs || _this._general.fontSize) * scale) + "px " + (item.ff || _this._general.fontFamily);
                     ctx.fillStyle = item.fc || _this._general.fontColor;
-                    ctx.fillText(item.f, item.x * 1 || 0, item.y * 1 || 0);
+                    ctx.fillText(item.f, item.x * scale || 0, item.y * scale || 0);
                     if(queue && _this._renderItems.indexOf(item.f) == -1) {
                         _this._renderItems.push(item);
                     }
@@ -316,39 +338,59 @@ class NdJsonPlayer {
                 break
             case "p": // Picture
                 if(item.f !== undefined) {
+                    const topLeft = !! item.tl;
+                    const flipHoriz = !! item.fh;
+                    const flipVert  = !! item.fv;
+                    const cw = canvas.width;
                     const img = new Image();
                     img.src = item.f;
-                    function rotateImage(image, angle) {
-                      const imgWidth = image.width || item.w * 1;
-                      const imgHeight = image.height || item.h * 1;
+                    img.onload = () => {
+                        function rotateImage(image, angle) {
+                          const scale = cw / (item.sc ||_this._general.scale);
+                          const imgWidth = (item.w * 1 || image.width) * scale;
+                          const imgHeight = (item.h * 1 || image.height) * scale;
 
-                      const offscreenCanvas = document.createElement('canvas');
-                      const offscreenCtx = offscreenCanvas.getContext('2d');
-                      offscreenCanvas.width = imgWidth;
-                      offscreenCanvas.height = imgHeight;
+                          const halfWidth = Math.round(imgWidth / 2);
+                          const halfHeight = Math.round(imgHeight / 2);
 
-                      const imageCenterX = imgWidth / 2;
-                      const imageCenterY = imgHeight / 2;
-                      const angleInRadians = angle * Math.PI / 180;
+                          const offscreenCanvas = document.createElement('canvas');
+                          const offscreenCtx = offscreenCanvas.getContext('2d');
+                          // Use max from width or height to be sure it is a square
+                          const maxSize = Math.max(imgWidth, imgHeight) * 1.45; // We need to be sure that when rotating, edges are not cut (45% more space)
+                          const marginX = Math.round((maxSize - imgWidth) / 2);
+                          const marginY = Math.round((maxSize - imgHeight) / 2);
+                          offscreenCanvas.width = maxSize;
+                          offscreenCanvas.height = maxSize;
 
-                      offscreenCtx.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
-                      offscreenCtx.translate(imageCenterX, imageCenterY);
-                      offscreenCtx.rotate(angleInRadians);
-                      offscreenCtx.drawImage(image, -imageCenterX, -imageCenterY);
-                      offscreenCtx.setTransform(1, 0, 0, 1, 0, 0);
+                          const imageCenter = Math.round(maxSize / 2);
+                          const angleInRadians = angle * Math.PI / 180;
 
-                      const canvasCenterX = canvas.width / 2;
-                      const canvasCenterY = canvas.height / 2;
+                          // For debugging:
+                          //offscreenCtx.fillStyle = "blue";
+                          //offscreenCtx.fillRect(0, 0, maxSize, maxSize);
 
-                      ctx.drawImage(offscreenCanvas,  item.x * 1, item.y * 1, item.w * 1, item.h * 1);
-                    }
-                    if(item.a) {
-                        rotateImage(img, item.a * 1);
-                    } else {
-                        ctx.drawImage(img, item.x * 1, item.y * 1, item.w * 1, item.h * 1);
-                    }
-                    if(queue && _this._renderItems.indexOf(item.f) == -1) {
-                        _this._renderItems.push(item);
+                          offscreenCtx.translate(imageCenter, imageCenter);
+                          offscreenCtx.rotate(angleInRadians);
+                          if(flipHoriz) {
+                            offscreenCtx.scale(-1, 1);
+                          }
+                          if(flipVert) {
+                            offscreenCtx.scale(1, -1);
+                          }
+                          offscreenCtx.drawImage(image, - halfWidth, - halfHeight, imgWidth, imgHeight);
+
+                          const targetX = (item.x * scale) - (topLeft ? marginX : imageCenter);
+                          const targetY = (item.y * scale) - (topLeft ? marginY : imageCenter);
+                          ctx.drawImage(offscreenCanvas, targetX, targetY, maxSize, maxSize);
+                        }
+                        if(item.a) {
+                            rotateImage(img, item.a * 1);
+                        } else {
+                            ctx.drawImage(img, item.x * 1, item.y * 1, item.w * 1, item.h * 1);
+                        }
+                        if(queue && _this._renderItems.indexOf(item.f) == -1) {
+                            _this._renderItems.push(item);
+                        }
                     }
                 } else {
                     console.log("Picture object didn't specify source: " + item)
@@ -381,24 +423,42 @@ class NdJsonPlayer {
                     videoSource.src = item.f;
                     videoEl.addEventListener('play', function() {
                        const vid = this;
+                       let millis = 0;
+                       const millisPerFrame = 1000 / _this._general.framesPerSec;
                        (function loop() {
                          if (!vid.paused && !vid.ended) {
-                            const canvas = ctx.canvas ;
+                            millis += millisPerFrame;
                             const hRatio = canvas.width  / vid.videoWidth    ;
                             const vRatio = canvas.height / vid.videoHeight  ;
-                            const ratio  = Math.min ( hRatio, vRatio ); //TODO: item.sc
+                            const ratio  = Math.min ( hRatio, vRatio );
                             const centerShift_x = ( canvas.width - vid.videoWidth*ratio ) / 2;
                             const centerShift_y = ( canvas.height - vid.videoHeight*ratio ) / 2;
+                            if(_this._general.keepAspectRatio) {
+                                canvas.height = canvas.width * _this._aspectRatio;
+                            }
                             ctx.clearRect(0,0,canvas.width, canvas.height);
                             ctx.drawImage(vid, 0,0, vid.videoWidth, vid.videoHeight,
                                    centerShift_x,centerShift_y,vid.videoWidth * ratio, vid.videoHeight * ratio);
+                            // Debug time:
+                              ctx.font = "15px Arial";
+                              ctx.fillStyle = "white";
+                              ctx.fillText(Math.round(millis), 50, 50);
+
                             // TODO: call callback here for render
                             if(_this._renderItems.length) { //FIXME: temporally test
                                 _this._renderItems.forEach(itm => {
-                                    _this.processFrame(itm, false);
+                                    if(itm.t) {
+                                        const startTime = _this._timeToMilliSeconds(itm.t);
+                                        const stopTime = itm.tt ? startTime + _this._timeToMilliSeconds(itm.tt) : _this._general.totTime || 9999999999999;
+                                        if(millis >= startTime && millis <= stopTime) {
+                                            _this.processFrame(itm, false);
+                                        }
+                                    } else {
+                                        _this.processFrame(itm, false);
+                                    }
                                 });
                             }
-                            setTimeout(loop, 1000 / 30); // drawing at 30fps
+                            setTimeout(loop, millisPerFrame); // drawing at 24fps
                          }
                        })();
                     }, 0);
@@ -552,7 +612,20 @@ class NdJsonPlayer {
         img.src = image[0] === "/" || image.match(/^https?:/) || image.match(/^data:image/) ? image : _this.path + image;
         return this;
     }
+    /**
+     * Converts 00:00:00.000 time to seconds
+     * Convert time to milliseconds (handles hours, minutes, seconds, and optional milliseconds)
+     */
+    _timeToMilliSeconds(time) {
+        let millis = 0
+        if(time.indexOf(".") !== -1) {
+            millis = time.split(".")[1] * 1;
+            time = time.split(".")[0];
+        }
+        return ((time.indexOf(":") !== -1 ? time.split(':').reduce((acc, val, idx) => acc + val * Math.pow(60, 2 - idx), 0) : 0) * 1000) + millis;
+    }
 
+    /////////////////////////////////// PUBLIC ///////////////////////////////////////////
     /**
      * Get frame base
      */
