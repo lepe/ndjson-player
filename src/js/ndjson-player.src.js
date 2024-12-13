@@ -440,9 +440,11 @@ class NdJsonPlayer {
                             ctx.drawImage(vid, 0,0, vid.videoWidth, vid.videoHeight,
                                    centerShift_x,centerShift_y,vid.videoWidth * ratio, vid.videoHeight * ratio);
                             // Debug time:
+                            /*
                               ctx.font = "15px Arial";
                               ctx.fillStyle = "white";
                               ctx.fillText(Math.round(millis), 50, 50);
+                              */
 
                             // TODO: call callback here for render
                             if(_this._renderItems.length) { //FIXME: temporally test

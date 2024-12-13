@@ -2,7 +2,7 @@
  * Author : A.Lepe (dev@alepe.com)
  * License: MIT
  * Version: 0.1.8
- * Updated: 2024-12-10
+ * Updated: 2024-12-11
  * Content: ndjson-player.src.js (Bundle Source)
  */
 
